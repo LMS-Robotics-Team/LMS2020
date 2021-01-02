@@ -20,6 +20,7 @@ import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
 import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
+import org.openftc.easyopencv.OpenCvWebcam;
 
 @Autonomous(name = "Autonomous", group = "lmsbots")
 
@@ -28,7 +29,8 @@ public class AutonomousOpmode extends LinearOpMode {
     // sets variables for drive motors, IMU, etc.
     DcMotor driveFL, driveFR, driveBL, driveBR;
     BNO055IMU imu;
-    WebcamName logitechWebcam;
+    OpenCvWebcam webcam;
+    WebcamName webcamName;
     RingDeterminationPipeline pipeline;
     double drivePower = 0.8, turnPower = 0.6;
     double wheelDiameter = 3.77953;
@@ -36,7 +38,7 @@ public class AutonomousOpmode extends LinearOpMode {
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = encoderTicksPerRotation / wheelCircumference;
     double robotHeading = 0;
-    int xPos = 0, yPos = 0;
+    int xPos = 0, yPos = 0, ringNumber;
 
     // called when the initialization button is  pressed
     @Override
@@ -52,67 +54,113 @@ public class AutonomousOpmode extends LinearOpMode {
         if (opModeIsActive()) {
 
             // autonomous code goes here
+            startWebcamStream();
+            ringNumber = determineRingNumber();
 
-            // grasp wobble goal
-            // code here
+            while (opModeIsActive())
+            {
+                telemetry.addData("Analysis", pipeline.getAnalysis());
+                telemetry.addData("Ring Number", pipeline.ringNumber);
+                telemetry.addData("Ring Number", ringNumber);
+                telemetry.update();
 
-            // point camera to area where rings would be
-            // code here
-
-            // sleep 2 seconds for camera to get correct reading
-//            sleep(2000);
-
-            // move robot to correct wobble goal zone and drop wobble goal
-            int ringNumber;
-            if (pipeline.ringNumber == 4) {
-                ringNumber = 4;
-            }
-            else if (pipeline.ringNumber == 1) {
-                ringNumber = 1;
-            }
-            else {
-                ringNumber = 0;
-
+                // Don't burn CPU cycles busy-looping in this sample
+                sleep(50);
             }
 
-            // move to shooting area and shoot preloaded rings
 
-            // go to other wobble goal, grab it, go to correct goal zone, and drop it
-            if (ringNumber == 4) {
 
-            }
-            else if (ringNumber == 1) {
-
-            }
-            else {
-
-            }
-
-            // park over white line
-            // code here
-
-            driveToBasic(36, 48);  // drives forward/backward and strafes left/right
+//            driveToBasic(36, 48);  // drives forward/backward and strafes left/right
 //            driveToIntermediate(36, 48);  // rotates toward/away from target and drives forward/backward
 //            driveToAdvanced(36, 48); // strafes in any direction to target
 
-
         }
 
+    }
+
+    private int determineRingNumber() {
+        int ringNumber1, ringNumber2, ringNumber3, ringNumber4, finalRingNumber;
+
+        sleep(3000);
+        if (pipeline.ringNumber == 4) {
+            ringNumber1 = 4;
+        }
+        else if (pipeline.ringNumber == 1) {
+            ringNumber1 = 1;
+        }
+        else {
+            ringNumber1 = 0;
+        }
+        sleep(250);
+        if (pipeline.ringNumber == 4) {
+            ringNumber2 = 4;
+        }
+        else if (pipeline.ringNumber == 1) {
+            ringNumber2 = 1;
+        }
+        else {
+            ringNumber2 = 0;
+        }
+        sleep(250);
+        if (pipeline.ringNumber == 4) {
+            ringNumber3 = 4;
+        }
+        else if (pipeline.ringNumber == 1) {
+            ringNumber3 = 1;
+        }
+        else {
+            ringNumber3 = 0;
+        }
+        sleep(250);
+        if (pipeline.ringNumber == 4) {
+            ringNumber4 = 4;
+        }
+        else if (pipeline.ringNumber == 1) {
+            ringNumber4 = 1;
+        }
+        else {
+            ringNumber4 = 0;
+        }
+
+        finalRingNumber = (int)(((ringNumber1 + ringNumber2 + ringNumber3 + ringNumber4)/4));
+        if (finalRingNumber == 2){
+            finalRingNumber = 1;
+        }
+        else if (finalRingNumber == 3){
+            finalRingNumber = 4;
+        }
+        return finalRingNumber;
+    }
+
+    private void startWebcamStream() {
+//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
+        pipeline = new RingDeterminationPipeline();
+        webcam.setPipeline(pipeline);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                webcam.startStreaming(320,240, OpenCvCameraRotation.UPRIGHT);
+            }
+        });
     }
 
     private void initialize() {
         telemetry.addData("Status", "Initializing...");
         telemetry.update();
 
-        // map our variables to robot components
-        driveFL = hardwareMap.get(DcMotor.class, "motorTestFL");
+        // map variables to robot components
+/*        driveFL = hardwareMap.get(DcMotor.class, "motorTestFL");
         driveFR = hardwareMap.get(DcMotor.class, "motorTestFR");
         driveBL = hardwareMap.get(DcMotor.class, "motorTestBL");
         driveBR = hardwareMap.get(DcMotor.class, "motorTestBR");
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        logitechWebcam = hardwareMap.get(WebcamName.class, "Webcam 1");
+        imu = hardwareMap.get(BNO055IMU.class, "imu");*/
+        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
 
-        driveFR.setDirection(DcMotor.Direction.REVERSE);
+/*        driveFR.setDirection(DcMotor.Direction.REVERSE);
         driveBR.setDirection(DcMotor.Direction.REVERSE);
 
         driveFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -125,26 +173,7 @@ public class AutonomousOpmode extends LinearOpMode {
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled = false;
-        imu.initialize(parameters);
-
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        final OpenCvCamera webcam = OpenCvCameraFactory.getInstance().createWebcam(logitechWebcam, cameraMonitorViewId);
-        pipeline = new RingDeterminationPipeline();
-        webcam.setPipeline(pipeline);
-
-        // We set the viewport policy to optimized view so the preview doesn't appear 90 deg
-        // out when the RC activity is in portrait. We do our actual image processing assuming
-        // landscape orientation, though.
-        webcam.setViewportRenderingPolicy(OpenCvCamera.ViewportRenderingPolicy.OPTIMIZE_VIEW);
-
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                webcam.startStreaming(320,240, OpenCvCameraRotation.UPRIGHT);
-            }
-        });
+        imu.initialize(parameters);*/
 
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
@@ -197,7 +226,7 @@ public class AutonomousOpmode extends LinearOpMode {
                 driveForward(distance);
                 turnLeft(targetHeading);
             }
-            else if (yDiff < 0){
+            else {
                 targetHeading = 180 - Math.toDegrees(Math.atan2(xDiff,yDiff));
 
                 telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
