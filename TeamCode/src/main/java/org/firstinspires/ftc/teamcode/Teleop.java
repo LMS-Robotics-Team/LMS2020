@@ -42,8 +42,10 @@ public class Teleop extends LinearOpMode {
             if (gamepad2.b){
                 if (wobbleGoal.getPosition() == 0){
                     wobbleGoal.setPosition(1);
+                    wobbleGoal.setPosition(1);
                 }
                 else {
+                    wobbleGoal.setPosition(0);
                     wobbleGoal.setPosition(0);
                 }
             }
