@@ -95,16 +95,15 @@ public class EasyOpenCVOpmodeWebcam extends LinearOpMode
         /*
          * Some color constants
          */
-        static final Scalar BLUE = new Scalar(0, 0, 255);
-        static final Scalar GREEN = new Scalar(0, 255, 0);
+        static final Scalar RED = new Scalar(255, 0, 0);
 
         /*
          * The core values which define the location and size of the sample regions
          */
-        static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(181,98);
+        static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(120,95);
 
-        static final int REGION_WIDTH = 35;
-        static final int REGION_HEIGHT = 25;
+        static final int REGION_WIDTH = 50;
+        static final int REGION_HEIGHT = 35;
 
         final int FOUR_RING_THRESHOLD = 150;
         final int ONE_RING_THRESHOLD = 135;
@@ -156,7 +155,7 @@ public class EasyOpenCVOpmodeWebcam extends LinearOpMode
                     input, // Buffer to draw on
                     region1_pointA, // First point which defines the rectangle
                     region1_pointB, // Second point which defines the rectangle
-                    BLUE, // The color the rectangle is drawn in
+                    RED, // The color the rectangle is drawn in
                     2); // Thickness of the rectangle lines
 
             position = RingPosition.FOUR; // Record our analysis
@@ -172,8 +171,8 @@ public class EasyOpenCVOpmodeWebcam extends LinearOpMode
                     input, // Buffer to draw on
                     region1_pointA, // First point which defines the rectangle
                     region1_pointB, // Second point which defines the rectangle
-                    GREEN, // The color the rectangle is drawn in
-                    -1); // Negative thickness means solid fill
+                    RED, // The color the rectangle is drawn in
+                    0); // Negative thickness means solid fill
 
             return input;
         }

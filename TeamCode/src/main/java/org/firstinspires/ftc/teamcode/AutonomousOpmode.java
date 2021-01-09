@@ -38,7 +38,7 @@ public class AutonomousOpmode extends LinearOpMode {
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = encoderTicksPerRotation / wheelCircumference;
     double robotHeading = 0;
-    int xPos = 0, yPos = 0, ringNumber;
+    int xPos = 0, yPos = 0;
 
     // called when the initialization button is  pressed
     @Override
@@ -54,21 +54,17 @@ public class AutonomousOpmode extends LinearOpMode {
         if (opModeIsActive()) {
 
             // autonomous code goes here
-            startWebcamStream();
-            ringNumber = determineRingNumber();
+            int ringNumber = pipeline.ringNumber;
 
             while (opModeIsActive())
             {
                 telemetry.addData("Analysis", pipeline.getAnalysis());
                 telemetry.addData("Ring Number", pipeline.ringNumber);
-                telemetry.addData("Ring Number", ringNumber);
                 telemetry.update();
 
                 // Don't burn CPU cycles busy-looping in this sample
                 sleep(50);
             }
-
-
 
 //            driveToBasic(36, 48);  // drives forward/backward and strafes left/right
 //            driveToIntermediate(36, 48);  // rotates toward/away from target and drives forward/backward
@@ -78,6 +74,51 @@ public class AutonomousOpmode extends LinearOpMode {
 
     }
 
+    private void initialize() {
+        telemetry.addData("Status", "Initializing...");
+        telemetry.update();
+
+        // map variables to robot components
+/*        driveFL = hardwareMap.get(DcMotor.class, "motorTestFL");
+        driveFR = hardwareMap.get(DcMotor.class, "motorTestFR");
+        driveBL = hardwareMap.get(DcMotor.class, "motorTestBL");
+        driveBR = hardwareMap.get(DcMotor.class, "motorTestBR");
+        imu = hardwareMap.get(BNO055IMU.class, "imu");*/
+        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
+        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
+        webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
+        pipeline = new RingDeterminationPipeline();
+        webcam.setPipeline(pipeline);
+
+        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
+        {
+            @Override
+            public void onOpened()
+            {
+                webcam.startStreaming(320,240, OpenCvCameraRotation.UPRIGHT);
+            }
+        });
+
+/*        driveFR.setDirection(DcMotor.Direction.REVERSE);
+        driveBR.setDirection(DcMotor.Direction.REVERSE);
+
+        driveFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        driveFR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        driveBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        driveBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = false;
+        imu.initialize(parameters);*/
+
+        telemetry.addData("Status", "Initialization Complete");
+        telemetry.update();
+    }
+
+    // this method determines how many rings there are at the start of the game - 0, 1 or 4
     private int determineRingNumber() {
         int ringNumber1, ringNumber2, ringNumber3, ringNumber4, finalRingNumber;
 
@@ -130,53 +171,6 @@ public class AutonomousOpmode extends LinearOpMode {
             finalRingNumber = 4;
         }
         return finalRingNumber;
-    }
-
-    private void startWebcamStream() {
-//        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName);
-        pipeline = new RingDeterminationPipeline();
-        webcam.setPipeline(pipeline);
-
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                webcam.startStreaming(320,240, OpenCvCameraRotation.UPRIGHT);
-            }
-        });
-    }
-
-    private void initialize() {
-        telemetry.addData("Status", "Initializing...");
-        telemetry.update();
-
-        // map variables to robot components
-/*        driveFL = hardwareMap.get(DcMotor.class, "motorTestFL");
-        driveFR = hardwareMap.get(DcMotor.class, "motorTestFR");
-        driveBL = hardwareMap.get(DcMotor.class, "motorTestBL");
-        driveBR = hardwareMap.get(DcMotor.class, "motorTestBR");
-        imu = hardwareMap.get(BNO055IMU.class, "imu");*/
-        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
-
-/*        driveFR.setDirection(DcMotor.Direction.REVERSE);
-        driveBR.setDirection(DcMotor.Direction.REVERSE);
-
-        driveFL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        driveFR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        driveBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        driveBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.mode = BNO055IMU.SensorMode.IMU;
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = false;
-        imu.initialize(parameters);*/
-
-        telemetry.addData("Status", "Initialization Complete");
-        telemetry.update();
     }
 
     // this method drives autonomously by going forward/backward and strafing left/right
@@ -589,62 +583,58 @@ public class AutonomousOpmode extends LinearOpMode {
     {
         public int ringNumber;
 
-        // Some color constants
-        static final Scalar BLUE = new Scalar(0, 0, 255);
-        static final Scalar GREEN = new Scalar(0, 255, 0);
+        // Color constant to draw red box around captured image
+        static final Scalar RED = new Scalar(255, 0, 0);
 
-        // The core values which define the location and size of the sample regions
-        static final Point REGION1_TOPLEFT_ANCHOR_POINT = new Point(181,98);
+        // Values that define the region we want to capture and analyze
+        static final Point TOP_LEFT_ANCHOR_POINT = new Point(120,95);
 
-        static final int REGION_WIDTH = 35;
-        static final int REGION_HEIGHT = 25;
+        static final int REGION_WIDTH = 50;
+        static final int REGION_HEIGHT = 35;
 
         final int FOUR_RING_THRESHOLD = 150;
         final int ONE_RING_THRESHOLD = 135;
 
         Point region1_pointA = new Point(
-                REGION1_TOPLEFT_ANCHOR_POINT.x,
-                REGION1_TOPLEFT_ANCHOR_POINT.y);
+                TOP_LEFT_ANCHOR_POINT.x,
+                TOP_LEFT_ANCHOR_POINT.y);
         Point region1_pointB = new Point(
-                REGION1_TOPLEFT_ANCHOR_POINT.x + REGION_WIDTH,
-                REGION1_TOPLEFT_ANCHOR_POINT.y + REGION_HEIGHT);
+                TOP_LEFT_ANCHOR_POINT.x + REGION_WIDTH,
+                TOP_LEFT_ANCHOR_POINT.y + REGION_HEIGHT);
 
-        // Working variables
-        Mat region1_Cb;
+        // Variables for matrices that will hold information about our defined region of the image captured
+        Mat region1_Cr;
         Mat YCrCb = new Mat();
-        Mat Cb = new Mat();
+        Mat Cr = new Mat();
         int avg1;
 
-        /*
-         * This function takes the RGB frame, converts to YCrCb,
-         * and extracts the Cb channel to the 'Cb' variable
-         */
-        void inputToCb(Mat input)
+        // This method converts the image from RGB to YCrCb and extracts the Cr portion of it to the Cr variable
+        void inputToCr(Mat input)
         {
             Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2YCrCb);
-            Core.extractChannel(YCrCb, Cb, 1);
+            Core.extractChannel(YCrCb, Cr, 1);
         }
 
         @Override
         public void init(Mat firstFrame)
         {
-            inputToCb(firstFrame);
+            inputToCr(firstFrame);
 
-            region1_Cb = Cb.submat(new Rect(region1_pointA, region1_pointB));
+            region1_Cr = Cr.submat(new Rect(region1_pointA, region1_pointB));
         }
 
         @Override
         public Mat processFrame(Mat input)
         {
-            inputToCb(input);
+            inputToCr(input);
 
-            avg1 = (int) Core.mean(region1_Cb).val[0];
+            avg1 = (int) Core.mean(region1_Cr).val[0];
 
             Imgproc.rectangle(
                     input, // Buffer to draw on
                     region1_pointA, // First point which defines the rectangle
                     region1_pointB, // Second point which defines the rectangle
-                    BLUE, // The color the rectangle is drawn in
+                    RED, // The color the rectangle is drawn in
                     2); // Thickness of the rectangle lines
 
             if(avg1 > FOUR_RING_THRESHOLD){
@@ -659,8 +649,8 @@ public class AutonomousOpmode extends LinearOpMode {
                     input, // Buffer to draw on
                     region1_pointA, // First point which defines the rectangle
                     region1_pointB, // Second point which defines the rectangle
-                    GREEN, // The color the rectangle is drawn in
-                    -1); // Negative thickness means solid fill
+                    RED, // The color the rectangle is drawn in
+                    0); // Negative thickness means solid fill, zero thickness means clear box
 
             return input;
         }
@@ -670,6 +660,5 @@ public class AutonomousOpmode extends LinearOpMode {
             return avg1;
         }
     }
-
 
 }
