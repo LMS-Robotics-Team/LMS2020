@@ -635,7 +635,7 @@ public class AutonomousOpmode extends LinearOpMode {
                     region1_pointA, // First point which defines the rectangle
                     region1_pointB, // Second point which defines the rectangle
                     RED, // The color the rectangle is drawn in
-                    2); // Thickness of the rectangle lines
+                    0); // Zero thickness is clear shape with outline; -1 is filled in
 
             if(avg1 > FOUR_RING_THRESHOLD){
                 ringNumber = 4;
@@ -644,13 +644,6 @@ public class AutonomousOpmode extends LinearOpMode {
             }else{
                 ringNumber = 0;
             }
-
-            Imgproc.rectangle(
-                    input, // Buffer to draw on
-                    region1_pointA, // First point which defines the rectangle
-                    region1_pointB, // Second point which defines the rectangle
-                    RED, // The color the rectangle is drawn in
-                    0); // Negative thickness means solid fill, zero thickness means clear box
 
             return input;
         }
