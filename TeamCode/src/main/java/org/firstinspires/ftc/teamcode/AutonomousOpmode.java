@@ -585,6 +585,7 @@ public class AutonomousOpmode extends LinearOpMode {
 
         // Color constant to draw red box around captured image
         static final Scalar RED = new Scalar(255, 0, 0);
+        static final Scalar BLUE = new Scalar(0, 0, 255);
 
         // Values that define the region we want to capture and analyze
         static final Point TOP_LEFT_ANCHOR_POINT = new Point(120,95);
