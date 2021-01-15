@@ -9,7 +9,7 @@ public class Teleop extends LinearOpMode {
 
     // sets variables for drive motors
 /*    private DcMotor driveFL, driveFR, driveBL, driveBR;*/
-    Servo wobbleGoal;
+    Servo wobbleGoalServo;
 
     // creates variables for drive inputs from controllers
     private double forwardBackward, leftRight, rotate;
@@ -40,13 +40,13 @@ public class Teleop extends LinearOpMode {
 
             // code for rotating wobble goal grabber
             if (gamepad2.b){
-                if (wobbleGoal.getPosition() == 0){
-                    wobbleGoal.setPosition(1);
-                    wobbleGoal.setPosition(1);
+                if (wobbleGoalServo.getPosition() == 0){
+                    wobbleGoalServo.setPosition(1);
+                    wobbleGoalServo.setPosition(1);
                 }
                 else {
-                    wobbleGoal.setPosition(0);
-                    wobbleGoal.setPosition(0);
+                    wobbleGoalServo.setPosition(0);
+                    wobbleGoalServo.setPosition(0);
                 }
             }
 
@@ -70,8 +70,8 @@ public class Teleop extends LinearOpMode {
         driveBL = hardwareMap.get(DcMotor.class, "motorTestBL");
         driveBR = hardwareMap.get(DcMotor.class, "motorTestBR");*/
 
-        wobbleGoal = hardwareMap.get(Servo.class, "wobbleGoalServo");
-        wobbleGoal.scaleRange(0,0.22);
+        wobbleGoalServo = hardwareMap.get(Servo.class, "wobbleGoalServo");
+        wobbleGoalServo.scaleRange(0,0.22);
 
         // sets right motors to reverse direction so they're going the right way
 /*        driveFL.setDirection(DcMotor.Direction.REVERSE);
