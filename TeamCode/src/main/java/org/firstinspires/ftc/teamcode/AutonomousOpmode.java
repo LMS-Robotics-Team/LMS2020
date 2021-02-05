@@ -39,6 +39,7 @@ public class AutonomousOpmode extends LinearOpMode {
     double encoderTicksPerInch = encoderTicksPerRotation / wheelCircumference;
     double robotHeading = 0;
     int xPos = 0, yPos = 0;
+    int ringNumber;
 
     // called when the initialization button is  pressed
     @Override
@@ -54,23 +55,63 @@ public class AutonomousOpmode extends LinearOpMode {
         if (opModeIsActive()) {
 
             // autonomous code goes here
-            int ringNumber = pipeline.ringNumber;
+
+            dropOffFirstWobbleGoal();
+            dropOffSecondWobbleGoal();
+            shootPreLoadedRings();
+            shootRingStack();
+            parkOverLaunchLine();
+
+//            driveToBasic(24, 24);  // drives forward/backward and strafes left/right
+//            driveToIntermediate(24, 24);  // rotates toward/away from target and drives forward/backward
+//            driveToAdvanced(24, 24); // strafes in any direction to target
 
             while (opModeIsActive())
             {
                 telemetry.addData("Analysis", pipeline.getAnalysis());
-                telemetry.addData("Ring Number", pipeline.ringNumber);
+                telemetry.addData("Ring Number", ringNumber);
+                telemetry.addData("X position", xPos);
+                telemetry.addData("Y position", yPos);
                 telemetry.update();
 
                 // Don't burn CPU cycles busy-looping in this sample
                 sleep(50);
             }
 
-//            driveToBasic(36, 48);  // drives forward/backward and strafes left/right
-//            driveToIntermediate(36, 48);  // rotates toward/away from target and drives forward/backward
-//            driveToAdvanced(36, 48); // strafes in any direction to target
-
         }
+
+    }
+
+    private void shootRingStack() {
+        // if there is 1 or 4 rings in stack, go to stack (otherwise don't do anything)
+        // turn on ring intake motor
+        // drive to shooting area
+        // shoot rings
+    }
+
+    private void parkOverLaunchLine() {
+        // drive to launch line
+    }
+
+    private void shootPreLoadedRings() {
+        // drive to shooting area
+        // shoot rings
+    }
+
+    private void dropOffSecondWobbleGoal() {
+        // drive to second wobble goal
+        // pickup wobble goal
+        // drive to correct target zone
+        // drop off wobble goal
+
+    }
+
+    private void dropOffFirstWobbleGoal() {
+        sleep(500);
+        ringNumber = pipeline.ringNumber;
+
+        // drive to correct target zone
+        // drop off wobble goal
 
     }
 
@@ -179,8 +220,8 @@ public class AutonomousOpmode extends LinearOpMode {
         int yDiff = yTarget - yPos;
 
         // move the robot
-        driveForward(yTarget);
-        strafeRight(xTarget);
+        strafeRight(xDiff);
+        driveForward(yDiff);
 
         // update the current position of the robot
         xPos = xTarget;
@@ -214,7 +255,7 @@ public class AutonomousOpmode extends LinearOpMode {
                 telemetry.addData("targetHeading",targetHeading);
                 telemetry.addData("distance",(int)distance);
                 telemetry.update();
-                sleep(3000);
+                sleep(2000);
 
                 turnRight(targetHeading);
                 driveForward(distance);
