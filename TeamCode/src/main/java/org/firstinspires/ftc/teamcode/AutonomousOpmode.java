@@ -33,8 +33,8 @@ public class AutonomousOpmode extends LinearOpMode {
     WebcamName webcamName;
     RingDeterminationPipeline pipeline;
     double drivePower = 0.8, turnPower = 0.6;
-    double wheelDiameter = 3.77953;
-    double encoderTicksPerRotation = 537.6;
+    double wheelDiameter;
+    double encoderTicksPerRotation;
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = encoderTicksPerRotation / wheelCircumference;
     double robotHeading = 0;
