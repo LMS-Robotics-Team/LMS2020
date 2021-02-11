@@ -26,7 +26,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 public class AutonomousOpmode extends LinearOpMode {
 
-    // sets variables for drive motors, IMU, etc.
+    //  sets variables for drive motors, IMU, etc.
     DcMotor driveFL, driveFR, driveBL, driveBR;
     BNO055IMU imu;
     OpenCvWebcam webcam;
