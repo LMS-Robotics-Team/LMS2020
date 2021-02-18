@@ -1,9 +1,11 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 
+@Disabled
 @Autonomous(name = "Test: Color Sensor", group = "Tests")
 public class ColorSensorTest extends LinearOpMode {
   // Define a variable for our color sensor

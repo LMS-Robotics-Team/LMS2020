@@ -2,9 +2,10 @@ package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.ftccommon.SoundPlayer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
-
+@Disabled
 @Autonomous(name = "Test: Color Sound Test", group = "Tests")
 public class ColorSoundTest extends LinearOpMode {
   // Define a variable for our color sensor

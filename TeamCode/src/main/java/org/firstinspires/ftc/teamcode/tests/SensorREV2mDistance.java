@@ -34,6 +34,7 @@ package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 
@@ -50,6 +51,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  *
  * @see <a href="http://revrobotics.com">REV Robotics Web Page</a>
  */
+@Disabled
 @Autonomous(name = "Tests: REV2mDistance", group = "Tests")
 public class SensorREV2mDistance extends LinearOpMode {
 

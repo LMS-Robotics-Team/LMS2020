@@ -30,6 +30,7 @@
 package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.ftccommon.SoundPlayer;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
@@ -65,7 +66,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
  *     You can copy and paste the entire 'raw' folder using Android Studio.
  *
  */
-
+@Disabled
 @TeleOp(name="Test: Sound Resources", group="Tests")
 public class ConceptSoundsASJavaTest extends LinearOpMode {
 
