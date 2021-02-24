@@ -1,46 +1,30 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-import org.opencv.core.Core;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
-import org.opencv.imgproc.Imgproc;
-import org.openftc.easyopencv.OpenCvCamera;
-import org.openftc.easyopencv.OpenCvCameraFactory;
-import org.openftc.easyopencv.OpenCvCameraRotation;
-import org.openftc.easyopencv.OpenCvPipeline;
-import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name = "Autonomous", group = "lmsbots")
+@Autonomous(name = "Autonomous Drive Test1", group = "lmsbots")
 
-public class AutonomousOpmode extends LinearOpMode {
+public class AutonomousDriveTest1 extends LinearOpMode {
 
     //  sets variables for drive motors, IMU, etc.
     DcMotor driveFL, driveFR, driveBL, driveBR;
-    BNO055IMU imu;
-    OpenCvWebcam webcam;
-    WebcamName webcamName;
-    RingDeterminationPipeline pipeline;
-    double drivePower = 0.8, turnPower = 0.6;
-    double wheelDiameter = 3.77953;
+    double drivePower = 0.5, turnPower = 0.5;
+    double wheelDiameter = 3.77952755905512;
     double encoderTicksPerRotation = 537.6;
     double gearRatio = 1.0;
     double wheelCircumference = wheelDiameter * Math.PI;
-    double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) / gearRatio);
+    double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double robotHeading = 0;
     int xPos = 0, yPos = 0;
-    int ringNumber;
+    BNO055IMU imu;
 
     // called when the initialization button is  pressed
     @Override
@@ -57,64 +41,21 @@ public class AutonomousOpmode extends LinearOpMode {
 
             // autonomous code goes here
 
-/*            dropOffFirstWobbleGoal();
-            dropOffSecondWobbleGoal();
-            shootPreLoadedRings();
-            shootRingStack();
-            parkOverLaunchLine();*/
-
-
-            driveToBasic(12, 12);  // drives forward/backward and strafes left/right
-//            driveToIntermediate(24, 24);  // rotates toward/away from target and drives forward/backward
-//            driveToAdvanced(24, 24); // strafes in any direction to target
+            driveToBasic(0, 20);  // strafes left/right then drives forward/backward
 
             while (opModeIsActive())
             {
-/*                telemetry.addData("Analysis", pipeline.getAnalysis());
-                telemetry.addData("Ring Number", ringNumber);
-                telemetry.addData("X position", xPos);
-                telemetry.addData("Y position", yPos);
-                telemetry.update();*/
+                telemetry.addData("FL encoder count", driveFL.getCurrentPosition());
+                telemetry.addData("FR encoder count", driveFR.getCurrentPosition());
+                telemetry.addData("BL encoder count", driveBL.getCurrentPosition());
+                telemetry.addData("BR encoder count", driveBR.getCurrentPosition());
+
+                telemetry.update();
 
                 // Don't burn CPU cycles busy-looping in this sample
                 sleep(50);
             }
-
         }
-
-    }
-
-    private void shootRingStack() {
-        // if there is 1 or 4 rings in stack, go to stack (otherwise don't do anything)
-        // turn on ring intake motor
-        // drive to shooting area
-        // shoot rings
-    }
-
-    private void parkOverLaunchLine() {
-        // drive to launch line
-    }
-
-    private void shootPreLoadedRings() {
-        // drive to shooting area
-        // shoot rings
-    }
-
-    private void dropOffSecondWobbleGoal() {
-        // drive to second wobble goal
-        // pickup wobble goal
-        // drive to correct target zone
-        // drop off wobble goal
-
-    }
-
-    private void dropOffFirstWobbleGoal() {
-        sleep(500);
-        ringNumber = pipeline.ringNumber;
-
-        // drive to correct target zone
-        // drop off wobble goal
-
     }
 
     private void initialize() {
@@ -136,88 +77,8 @@ public class AutonomousOpmode extends LinearOpMode {
         driveBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         driveBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        // initialize webcam
-        webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
-        int cameraMonitorViewId = hardwareMap.appContext.getResources().getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.getPackageName());
-        webcam = OpenCvCameraFactory.getInstance().createWebcam(webcamName, cameraMonitorViewId);
-        pipeline = new RingDeterminationPipeline();
-        webcam.setPipeline(pipeline);
-
-        webcam.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener()
-        {
-            @Override
-            public void onOpened()
-            {
-                webcam.startStreaming(320,240, OpenCvCameraRotation.UPRIGHT);
-            }
-        });
-
-        // initialize imu
-/*        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.mode = BNO055IMU.SensorMode.IMU;
-        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
-        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
-        parameters.loggingEnabled = false;
-        imu.initialize(parameters);*/
-
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
-    }
-
-    // this method determines how many rings there are at the start of the game - 0, 1 or 4
-    private int determineRingNumber() {
-        int ringNumber1, ringNumber2, ringNumber3, ringNumber4, finalRingNumber;
-
-        sleep(3000);
-        if (pipeline.ringNumber == 4) {
-            ringNumber1 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber1 = 1;
-        }
-        else {
-            ringNumber1 = 0;
-        }
-        sleep(250);
-        if (pipeline.ringNumber == 4) {
-            ringNumber2 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber2 = 1;
-        }
-        else {
-            ringNumber2 = 0;
-        }
-        sleep(250);
-        if (pipeline.ringNumber == 4) {
-            ringNumber3 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber3 = 1;
-        }
-        else {
-            ringNumber3 = 0;
-        }
-        sleep(250);
-        if (pipeline.ringNumber == 4) {
-            ringNumber4 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber4 = 1;
-        }
-        else {
-            ringNumber4 = 0;
-        }
-
-        finalRingNumber = (int)(((ringNumber1 + ringNumber2 + ringNumber3 + ringNumber4)/4));
-        if (finalRingNumber == 2){
-            finalRingNumber = 1;
-        }
-        else if (finalRingNumber == 3){
-            finalRingNumber = 4;
-        }
-        return finalRingNumber;
     }
 
     // this method drives autonomously by strafing left/right and then moving forward/backward
@@ -627,83 +488,6 @@ public class AutonomousOpmode extends LinearOpMode {
     private double Angle() {
         Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         return angles.firstAngle;
-    }
-
-
-    public static class RingDeterminationPipeline extends OpenCvPipeline
-    {
-        public int ringNumber;
-
-        // Color constant to draw red box around captured image
-        static final Scalar RED = new Scalar(255, 0, 0);
-        static final Scalar BLUE = new Scalar(0, 0, 255);
-
-        // Values that define the region we want to capture and analyze
-        static final Point TOP_LEFT_ANCHOR_POINT = new Point(120,95);
-
-        static final int REGION_WIDTH = 50;
-        static final int REGION_HEIGHT = 35;
-
-        final int FOUR_RING_THRESHOLD = 150;
-        final int ONE_RING_THRESHOLD = 135;
-
-        Point region1_pointA = new Point(
-                TOP_LEFT_ANCHOR_POINT.x,
-                TOP_LEFT_ANCHOR_POINT.y);
-        Point region1_pointB = new Point(
-                TOP_LEFT_ANCHOR_POINT.x + REGION_WIDTH,
-                TOP_LEFT_ANCHOR_POINT.y + REGION_HEIGHT);
-
-        // Variables for matrices that will hold information about our defined region of the image captured
-        Mat region1_Cr;
-        Mat YCrCb = new Mat();
-        Mat Cr = new Mat();
-        int avg1;
-
-        // This method converts the image from RGB to YCrCb and extracts the Cr portion of it to the Cr variable
-        void inputToCr(Mat input)
-        {
-            Imgproc.cvtColor(input, YCrCb, Imgproc.COLOR_RGB2YCrCb);
-            Core.extractChannel(YCrCb, Cr, 1);
-        }
-
-        @Override
-        public void init(Mat firstFrame)
-        {
-            inputToCr(firstFrame);
-
-            region1_Cr = Cr.submat(new Rect(region1_pointA, region1_pointB));
-        }
-
-        @Override
-        public Mat processFrame(Mat input)
-        {
-            inputToCr(input);
-
-            avg1 = (int) Core.mean(region1_Cr).val[0];
-
-            Imgproc.rectangle(
-                    input, // Buffer to draw on
-                    region1_pointA, // First point which defines the rectangle
-                    region1_pointB, // Second point which defines the rectangle
-                    RED, // The color the rectangle is drawn in
-                    0); // Zero thickness is clear shape with outline; -1 is filled in
-
-            if(avg1 > FOUR_RING_THRESHOLD){
-                ringNumber = 4;
-            }else if (avg1 > ONE_RING_THRESHOLD){
-                ringNumber = 1;
-            }else{
-                ringNumber = 0;
-            }
-
-            return input;
-        }
-
-        public int getAnalysis()
-        {
-            return avg1;
-        }
     }
 
 }

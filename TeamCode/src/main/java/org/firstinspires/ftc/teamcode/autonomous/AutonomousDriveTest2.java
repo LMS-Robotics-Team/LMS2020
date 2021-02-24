@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.tests;
+package org.firstinspires.ftc.teamcode.autonomous;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
@@ -10,17 +10,18 @@ import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
-@Autonomous(name = "Autonomous Drive Test", group = "lmsbots")
+@Autonomous(name = "Autonomous Drive Test2", group = "lmsbots")
 
-public class AutonomousDriveTest extends LinearOpMode {
+public class AutonomousDriveTest2 extends LinearOpMode {
 
     //  sets variables for drive motors, IMU, etc.
     DcMotor driveFL, driveFR, driveBL, driveBR;
     double drivePower = 0.5, turnPower = 0.5;
-    double wheelDiameter = 3.77953;
+    double wheelDiameter = 3.77952755905512;
     double encoderTicksPerRotation = 537.6;
+    double gearRatio = 2.0;
     double wheelCircumference = wheelDiameter * Math.PI;
-    double encoderTicksPerInch = encoderTicksPerRotation / wheelCircumference;
+    double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double robotHeading = 0;
     int xPos = 0, yPos = 0;
     BNO055IMU imu;
@@ -40,20 +41,21 @@ public class AutonomousDriveTest extends LinearOpMode {
 
             // autonomous code goes here
 
-            driveToBasic(0, 12);  // strafes left/right then drives forward/backward
+            driveToBasic(0, 20);  // strafes left/right then drives forward/backward
 
             while (opModeIsActive())
             {
-                telemetry.addData("X position", xPos);
-                telemetry.addData("Y position", yPos);
+                telemetry.addData("FL encoder count", driveFL.getCurrentPosition());
+                telemetry.addData("FR encoder count", driveFR.getCurrentPosition());
+                telemetry.addData("BL encoder count", driveBL.getCurrentPosition());
+                telemetry.addData("BR encoder count", driveBR.getCurrentPosition());
+
                 telemetry.update();
 
                 // Don't burn CPU cycles busy-looping in this sample
                 sleep(50);
             }
-
         }
-
     }
 
     private void initialize() {

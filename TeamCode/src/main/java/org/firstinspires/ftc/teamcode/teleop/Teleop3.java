@@ -1,10 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
-
+@Disabled
 @TeleOp
 public class Teleop3 extends LinearOpMode {
 
@@ -29,9 +30,9 @@ public class Teleop3 extends LinearOpMode {
         while (opModeIsActive()) {
 
             // sets values of variables for gamepad1 (start+a) inputs for driving
-            forwardBackward = -gamepad1.left_stick_y;  // uses left stick to move forward and backward
-            leftRight = gamepad1.right_trigger - gamepad1.left_trigger;    // uses triggers to strafe left and right
-            rotate = gamepad1.right_stick_x;  // uses right stick to rotate
+            forwardBackward = -gamepad1.right_stick_y;
+            leftRight = gamepad1.right_stick_x;
+            rotate = gamepad1.right_trigger - gamepad1.left_trigger;
 
            // driving in all directions and rotating
             driveFL.setPower(forwardBackward + leftRight + rotate);
@@ -128,15 +129,9 @@ public class Teleop3 extends LinearOpMode {
     // class to add and update telemetry
     private void addTelemetry() {
         telemetry.addData("gamepad1","");
-        telemetry.addData("Left stick up/down"," Forward/backward");
-        telemetry.addData("Left and right triggers"," Strafe left/right");
-        telemetry.addData("Right stick left/right"," Rotate left/right");
-        telemetry.addData("","");
-        telemetry.addData("gamepad2","");
-        telemetry.addData("A"," Ring Intake Motor On/Off");
-        telemetry.addData("B"," Wobble Goal Servo");
-        telemetry.addData("X"," Ring Feeder Servo");
-        telemetry.addData("Y"," Ring Shooter Motor On/Off");
+        telemetry.addData("Right stick up/down"," Forward/backward");
+        telemetry.addData("Right stick left/right"," Strafe left/right");
+        telemetry.addData("Left and right triggers"," Rotate left/right");
         telemetry.update();
     }
 }
