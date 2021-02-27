@@ -41,7 +41,7 @@ public class Teleop extends LinearOpMode {
             // code for taking in rings
             if (gamepad2.a) {
                 if (takingInRingsMotor.getPower() == 0){
-                    takingInRingsMotor.setPower(0.5);
+                    takingInRingsMotor.setPower(-1.0);
                 }
                 else {
                     takingInRingsMotor.setPower(0);
@@ -74,8 +74,8 @@ public class Teleop extends LinearOpMode {
             // shooter motor
             if (gamepad2.y) {
                 if (ringShooterMotor1.getPower() == 0) {
-                    ringShooterMotor1.setPower(0.5);
-                    ringShooterMotor2.setPower(0.5);
+                    ringShooterMotor1.setPower(-0.9);
+                    ringShooterMotor2.setPower(-0.9);
 
                 } else {
                     ringShooterMotor1.setPower(0);
@@ -120,7 +120,7 @@ public class Teleop extends LinearOpMode {
         // maps ring feeder servo variable to hardware configuration name
         ringFeederServo = hardwareMap.get(Servo.class, "ringFeederServo");
 
-        ringFeederServo.scaleRange(0.6,0.9); // sets min and max positions of servo
+//        ringFeederServo.scaleRange(0.6,0.9); // sets min and max positions of servo
         ringFeederServo.setPosition(0.6); // sets initial position of servo
 
         // maps wobble goal servo variable to hardware configuration name

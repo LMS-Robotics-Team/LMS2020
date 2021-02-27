@@ -23,11 +23,11 @@ public class TeleopRingShooterTest extends LinearOpMode {
         // runs until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            // code for taking in rings
+            /// code for taking in rings
             if (gamepad2.b) {
                 if (ringShooterMotor1.getPower() == 0){
-                    ringShooterMotor1.setPower(0.5);
-                    ringShooterMotor2.setPower(0.5);
+                    ringShooterMotor1.setPower(-0.9);
+                    ringShooterMotor2.setPower(-0.9);
                 }
                 else {
                     ringShooterMotor1.setPower(0);

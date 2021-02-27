@@ -25,7 +25,7 @@ public class TeleopRingIntakeTest extends LinearOpMode {
             // code for taking in rings
             if (gamepad2.a) {
                 if (takingInRingsMotor.getPower() == 0){
-                    takingInRingsMotor.setPower(0.5);
+                    takingInRingsMotor.setPower(-1.0);
                 }
                 else {
                     takingInRingsMotor.setPower(0);
