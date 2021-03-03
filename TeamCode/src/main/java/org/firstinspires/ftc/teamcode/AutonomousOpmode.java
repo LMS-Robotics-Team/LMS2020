@@ -55,78 +55,101 @@ public class AutonomousOpmode extends LinearOpMode {
         waitForStart();
         // run until the end of the match (driver presses STOP)
 
-        sleep(500);
-        ringNumber = pipeline.ringNumber;
-
         if (opModeIsActive()) {
 
-            // autonomous code goes here
+            sleep(300);
+            ringNumber = pipeline.ringNumber;
 
+            wobbleGoalServo.setPosition(0.22);
 
-//            dropOffSecondWobbleGoal();
-            shootPreLoadedRings();
-            dropOffFirstWobbleGoal();
-//            shootRingStack();
-//            parkOverLaunchLine();*/
+            shootRings();
+            pickupRingStack();
+            shootRingStack();
+            parkOverLaunchLine();
 
+            ringShooterMotor1.setPower(0);
+            ringShooterMotor2.setPower(0);
+            takingInRingsMotor.setPower(0);
 
-//            driveToBasic(36,58);  // drives forward/backward and strafes left/right
-//            driveToIntermediate(24, 24);  // rotates toward/away from target and drives forward/backward
-//            driveToAdvanced(24, 24); // strafes in any direction to target
+//            if (ringNumber == 1 || ringNumber == 4) {
+//                pickupRingStack();
+//                shootRings();
+//            }
 
-            while (opModeIsActive())
-            {
-                telemetry.addData("Analysis", pipeline.getAnalysis());
-                telemetry.addData("Ring Number", ringNumber);
-                telemetry.addData("X position", xPos);
-                telemetry.addData("Y position", yPos);
-                telemetry.update();
-
-                // Don't burn CPU cycles busy-looping in this sample
-                sleep(50);
-            }
+//            dropOffFirstWobbleGoal();
+//            getSecondWobbleGoal();
+//            parkOverLaunchLine();
 
         }
-
     }
 
     private void shootRingStack() {
-        // if there is 1 or 4 rings in stack, go to stack (otherwise don't do anything)
-        // turn on ring intake motor
-        // drive to shooting area
-        // shoot rings
+        driveToBasic(32,59);
+
+        for (int i = 0; i < 5; i++) {
+            ringFeederServo.setPosition(1.0);
+            sleep(400);
+            ringFeederServo.setPosition(0.6);
+            sleep(400);
+        }
+    }
+
+    private void pickupRingStack() {
+        takingInRingsMotor.setPower(-1.0);
+//        driveToAdvanced(48,50);
+        driveToBasic(51,50);
+        driveToBasic(51,40);
     }
 
     private void parkOverLaunchLine() {
-        // drive to launch line
-        driveToBasic(36,80);
+//         driveToAdvanced(36,72);
+        driveToBasic(36,70);
     }
 
-    private void shootPreLoadedRings() {
+    private void shootRings() {
         // start ring shooter motor
         ringShooterMotor1.setPower(-0.9);
         ringShooterMotor2.setPower(-0.9);
 
         // drive to shooting area
-        driveToBasic(34,61);
+//        driveToAdvanced(34,61);
+        driveToBasic(36,59);
 
-        for (int i = 0; i < 6; i++) {
-            ringFeederServo.setPosition(0.9);
-            sleep(500);
+        for (int i = 0; i < 5; i++) {
+            ringFeederServo.setPosition(1.0);
+            sleep(400);
             ringFeederServo.setPosition(0.6);
-            sleep(500);
+            sleep(400);
         }
-
-        ringShooterMotor1.setPower(0);
-        ringShooterMotor2.setPower(0);
-
     }
 
-    private void dropOffSecondWobbleGoal() {
-        // drive to second wobble goal
-        // pickup wobble goal
-        // drive to correct target zone
-        // drop off wobble goal
+    private void getSecondWobbleGoal() {
+        driveToAdvanced(36,5);
+        driveToBasic(60,5);
+        drivePower = 0.2;
+        driveToBasic(60,20);
+        drivePower = 1.0;
+
+        if (ringNumber == 0) {
+            // drop off wobble goal at target zone A
+            driveToAdvanced(55,70);
+//        driveToBasic(54,70);
+
+            sleep(1000);
+            driveToBasic(54,55);
+        }
+        else if (ringNumber == 1) {
+            // drop off wobble goal at target zone B
+            driveToAdvanced(36,88);
+            sleep(1000);
+            driveToBasic(36, 73);
+        }
+        else {
+            // drop off wobble goal at target zone C
+            driveToAdvanced(54,94);
+            sleep(1000);
+            driveToBasic(54,79);
+        }
 
     }
 
@@ -134,26 +157,35 @@ public class AutonomousOpmode extends LinearOpMode {
 
         wobbleGoalServo.setPosition(0.45);
 
-        // drive to correct target zone
-        driveToBasic(54,70);
-
-        // drop off wobble goal
-
-        sleep(1000);
-        driveToBasic(54,55);
-
+        if (ringNumber == 0) {
+            // drop off wobble goal at target zone A
+            driveToAdvanced(60,76);
+            sleep(1000);
+            driveToBasic(60,60);
+        }
+        else if (ringNumber == 1) {
+            // drop off wobble goal at target zone B
+            driveToAdvanced(36,88);
+            sleep(1000);
+            driveToBasic(36, 73);
+        }
+        else {
+            // drop off wobble goal at target zone C
+            driveToAdvanced(54,94);
+            sleep(1000);
+            driveToBasic(54,79);
+        }
     }
 
     private void initialize() {
         telemetry.addData("Status", "Initializing...");
         telemetry.update();
 
-        // initialize drive motors
-        // map variables to drive motors
         driveFL = hardwareMap.get(DcMotor.class, "motorTestFL");
         driveFR = hardwareMap.get(DcMotor.class, "motorTestFR");
         driveBL = hardwareMap.get(DcMotor.class, "motorTestBL");
         driveBR = hardwareMap.get(DcMotor.class, "motorTestBR");
+
         // sets two motors to go in reverse so that robot runs right
         driveFL.setDirection(DcMotor.Direction.REVERSE);
         driveBL.setDirection(DcMotor.Direction.REVERSE);
@@ -168,12 +200,11 @@ public class AutonomousOpmode extends LinearOpMode {
         takingInRingsMotor = hardwareMap.get(DcMotor.class, "takingInRingsMotor");
 
         ringFeederServo = hardwareMap.get(Servo.class, "ringFeederServo");
-        ringFeederServo.setPosition(0.9);
         ringFeederServo.setPosition(0.6);
 
         wobbleGoalServo = hardwareMap.get(Servo.class, "wobbleGoalServo");
         //wobbleGoalServo.scaleRange(0.22,0.45);
-        wobbleGoalServo.setPosition(0.20);
+        wobbleGoalServo.setPosition(0.1);
 
         // initialize webcam
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
@@ -465,7 +496,7 @@ public class AutonomousOpmode extends LinearOpMode {
         telemetry.update();
         sleep(3000);
 
-        encoderDrive(encoderTicks, drivePower , heading);
+        encoderDrive(encoderTicks, drivePower, heading);
         xPos = xTarget;
         yPos = yTarget;
     }
@@ -483,6 +514,11 @@ public class AutonomousOpmode extends LinearOpMode {
         driveFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         driveBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         driveBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        driveFL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveFR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveBL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveBR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         driveFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         driveFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -513,6 +549,11 @@ public class AutonomousOpmode extends LinearOpMode {
         driveFR.setPower(0);
         driveBL.setPower(0);
         driveBR.setPower(0);
+
+        driveFL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveFR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveBL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveBR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         resetStartTime();
     }
@@ -668,7 +709,6 @@ public class AutonomousOpmode extends LinearOpMode {
         return angles.firstAngle;
     }
 
-
     public static class RingDeterminationPipeline extends OpenCvPipeline
     {
         public int ringNumber;
@@ -678,7 +718,7 @@ public class AutonomousOpmode extends LinearOpMode {
         static final Scalar BLUE = new Scalar(0, 0, 255);
 
         // Values that define the region we want to capture and analyze
-        static final Point TOP_LEFT_ANCHOR_POINT = new Point(120,95);
+        static final Point TOP_LEFT_ANCHOR_POINT = new Point(175,180);
 
         static final int REGION_WIDTH = 50;
         static final int REGION_HEIGHT = 35;

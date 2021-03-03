@@ -27,10 +27,14 @@ public class Teleop extends LinearOpMode {
         // runs until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
+            ringShooterMotor1.setPower(-0.9);
+            ringShooterMotor2.setPower(-0.9);
+            takingInRingsMotor.setPower(-1);
+
             // sets values of variables for gamepad1 (start+a) inputs for driving
-            forwardBackward = -gamepad1.left_stick_y;  // uses left stick to move forward and backward
-            leftRight = gamepad1.right_trigger - gamepad1.left_trigger;    // uses triggers to strafe left and right
-            rotate = gamepad1.right_stick_x;  // uses right stick to rotate
+            forwardBackward = -gamepad1.right_stick_y;
+            leftRight = gamepad1.right_stick_x;
+            rotate = gamepad1.right_trigger - gamepad1.left_trigger;
 
            // driving in all directions and rotating
             driveFL.setPower(forwardBackward + leftRight + rotate);
@@ -59,13 +63,10 @@ public class Teleop extends LinearOpMode {
             }
 
             // feeder servo
-            if (gamepad2.x){
-                if (ringFeederServo.getPosition() == 0.6){
+            if (gamepad2.right_trigger == 1) {
+                if (ringShooterMotor1.getPower() < -0.8){
                     ringFeederServo.setPosition(0.9);
                     sleep(500);
-                    ringFeederServo.setPosition(0.6);
-                }
-                else {
                     ringFeederServo.setPosition(0.6);
                 }
             }

@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
-public class Teleop2 extends LinearOpMode {
+public class Teleop5 extends LinearOpMode {
 
     // sets variables for motors and servos
     private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
@@ -33,8 +33,8 @@ public class Teleop2 extends LinearOpMode {
 
             // sets values of variables for gamepad1 (start+a) inputs for driving
             forwardBackward = -gamepad1.left_stick_y;
-            leftRight = gamepad1.right_stick_x;
-            rotate = gamepad1.right_trigger - gamepad1.left_trigger;
+            leftRight = gamepad1.right_trigger - gamepad1.left_trigger;
+            rotate = gamepad1.right_stick_x;
 
            // driving in all directions and rotating
             driveFL.setPower(forwardBackward + leftRight + rotate);
