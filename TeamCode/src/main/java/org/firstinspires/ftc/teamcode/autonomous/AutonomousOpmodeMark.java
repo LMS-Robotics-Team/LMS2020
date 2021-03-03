@@ -59,10 +59,12 @@ public class AutonomousOpmodeMark extends LinearOpMode {
 
             ringNumber = pipeline.ringNumber;
 
-            shootRings();
-            dropOffFirstWobbleGoal();
-            getSecondWobbleGoal();
-            parkOverLaunchLine();
+            driveToAdvanced(36,59);
+
+            while (opModeIsActive()){
+                telemetry.addData("Ring Number", ringNumber);
+                telemetry.update();
+            }
 
         }
     }
@@ -472,7 +474,6 @@ public class AutonomousOpmodeMark extends LinearOpMode {
         telemetry.addData("heading",heading);
         telemetry.addData("encoderTicksPerInch",encoderTicksPerInch);
         telemetry.update();
-        sleep(3000);
 
         encoderDrive(encoderTicks, drivePower, heading);
         xPos = xTarget;

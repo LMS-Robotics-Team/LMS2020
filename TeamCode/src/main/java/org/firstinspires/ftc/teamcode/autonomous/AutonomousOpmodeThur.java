@@ -474,7 +474,6 @@ public class AutonomousOpmodeThur extends LinearOpMode {
         telemetry.addData("heading",heading);
         telemetry.addData("encoderTicksPerInch",encoderTicksPerInch);
         telemetry.update();
-        sleep(3000);
 
         encoderDrive(encoderTicks, drivePower, heading);
         xPos = xTarget;
