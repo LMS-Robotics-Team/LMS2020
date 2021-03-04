@@ -1,16 +1,26 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 @TeleOp
 public class Teleop extends LinearOpMode {
 
     // sets variables for motors and servos
     private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
-    Servo wobbleGoalServo, ringFeederServo;
+    Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
+    BNO055IMU imu;
+    Orientation angles;
+    double towerGoalRingMotorSpeed = -0.85, powerShotRingMotorSpeed = -0.7;
+    double wobbleGoalStartingPosition = 0.1, wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.45;
 
     // creates variables for drive inputs from controllers
     private double forwardBackward, leftRight, rotate;
@@ -27,14 +37,14 @@ public class Teleop extends LinearOpMode {
         // runs until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            ringShooterMotor1.setPower(-0.9);
-            ringShooterMotor2.setPower(-0.9);
-            takingInRingsMotor.setPower(-1);
-
             // sets values of variables for gamepad1 (start+a) inputs for driving
             forwardBackward = -gamepad1.right_stick_y;
             leftRight = gamepad1.right_stick_x;
             rotate = gamepad1.right_trigger - gamepad1.left_trigger;
+            angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES);
+
+            // function to update telemetry
+            addTelemetry();
 
            // driving in all directions and rotating
             driveFL.setPower(forwardBackward + leftRight + rotate);
@@ -42,50 +52,61 @@ public class Teleop extends LinearOpMode {
             driveBL.setPower(forwardBackward - leftRight + rotate);
             driveBR.setPower(forwardBackward + leftRight - rotate);
 
-            // code for taking in rings
+            // Press A for ring intake motor
             if (gamepad2.a) {
-                if (takingInRingsMotor.getPower() == 0){
-                    takingInRingsMotor.setPower(-1.0);
+                if (takingInRingsMotor.getPower() < 0){
+                    takingInRingsMotor.setPower(1);
                 }
                 else {
-                    takingInRingsMotor.setPower(0);
+                    takingInRingsMotor.setPower(-1);
                 }
             }
 
-            // code for rotating wobble goal grabber
-            if (gamepad2.b){
-                if (wobbleGoalServo.getPosition() != 0){
-                    wobbleGoalServo.setPosition(0);
-                }
-                else {
-                    wobbleGoalServo.setPosition(1);
-                }
+            // Right stick for wobble goal servo
+            while (gamepad2.right_stick_y < 0){
+                wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
+            }
+            while (gamepad1.right_stick_y > 0) {
+                    wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
             }
 
-            // feeder servo
+            // Press right trigger for ring feeder servo
             if (gamepad2.right_trigger == 1) {
-                if (ringShooterMotor1.getPower() < -0.8){
+                if (ringShooterMotor1.getPower() <= powerShotRingMotorSpeed){
                     ringFeederServo.setPosition(0.9);
-                    sleep(500);
+                    sleep(300);
                     ringFeederServo.setPosition(0.6);
                 }
             }
 
+            // Press left trigger to unlock and lock wobble goal release servo
+/*            if (gamepad2.left_trigger == 1) {
+                if (wobbleGoalReleaseServo.getPosition() == 0) {
+                    wobbleGoalReleaseServo.setPosition(0.5);
+                }
+                else {
+                    wobbleGoalReleaseServo.setPosition(0);
+                }
+            }*/
 
-            // shooter motor
+            // press Y for shooter motor for tower goal
             if (gamepad2.y) {
-                if (ringShooterMotor1.getPower() == 0) {
-                    ringShooterMotor1.setPower(-0.9);
-                    ringShooterMotor2.setPower(-0.9);
-
-                } else {
+                if (ringShooterMotor1.getPower() < powerShotRingMotorSpeed) {
                     ringShooterMotor1.setPower(0);
                     ringShooterMotor2.setPower(0);
+
+                } else {
+                    ringShooterMotor1.setPower(towerGoalRingMotorSpeed);
+                    ringShooterMotor2.setPower(towerGoalRingMotorSpeed);
                 }
             }
 
-            // function to update telemetry
-            addTelemetry();
+            // press X for shooter motor for powershot
+            if (gamepad2.x) {
+                ringShooterMotor1.setPower(powerShotRingMotorSpeed);
+                ringShooterMotor2.setPower(powerShotRingMotorSpeed);
+            }
+
         }
     }
 
@@ -126,9 +147,16 @@ public class Teleop extends LinearOpMode {
 
         // maps wobble goal servo variable to hardware configuration name
         wobbleGoalServo = hardwareMap.get(Servo.class, "wobbleGoalServo");
+        wobbleGoalServo.setPosition(wobbleGoalStartingPosition); // sets initial position of servo
+//        wobbleGoalReleaseServo = hardwareMap.get(Servo.class, "wobbleGoalReleaseServo");
 
-        wobbleGoalServo.scaleRange(0.22,0.45); // sets min and max positions of servo
-        wobbleGoalServo.setPosition(0); // sets initial position of servo
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+        parameters.mode = BNO055IMU.SensorMode.IMU;
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
+        parameters.loggingEnabled = false;
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
 
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
@@ -136,16 +164,7 @@ public class Teleop extends LinearOpMode {
 
     // class to add and update telemetry
     private void addTelemetry() {
-        telemetry.addData("gamepad1","");
-        telemetry.addData("Left stick up/down"," Forward/backward");
-        telemetry.addData("Left/right triggers"," Strafe left/right");
-        telemetry.addData("Right stick left/right"," Rotate left/right");
-        telemetry.addData("","");
-        telemetry.addData("gamepad2","");
-        telemetry.addData("A"," Ring Intake Motor On/Off");
-        telemetry.addData("B"," Wobble Goal Servo");
-        telemetry.addData("X"," Ring Feeder Servo");
-        telemetry.addData("Y"," Ring Shooter Motors On/Off");
+        telemetry.addData("Robot heading", angles.firstAngle);
         telemetry.update();
     }
 }

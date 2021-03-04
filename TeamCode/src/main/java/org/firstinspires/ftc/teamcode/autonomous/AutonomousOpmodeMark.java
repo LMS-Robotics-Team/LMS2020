@@ -59,7 +59,15 @@ public class AutonomousOpmodeMark extends LinearOpMode {
 
             ringNumber = pipeline.ringNumber;
 
+            driveToAdvanced(72,65);
+            driveToAdvanced(72,55);
             driveToAdvanced(36,59);
+            driveToAdvanced(36,3);
+            driveToAdvanced(60,3);
+            driveToAdvanced(72,65);
+            driveToAdvanced(72,55);
+
+
 
             while (opModeIsActive()){
                 telemetry.addData("Ring Number", ringNumber);
@@ -98,8 +106,7 @@ public class AutonomousOpmodeMark extends LinearOpMode {
         ringShooterMotor2.setPower(-0.9);
 
         // drive to shooting area
-//        driveToAdvanced(34,61);
-        driveToAdvanced(36,59);
+        driveToAdvanced(34,61);
 
         for (int i = 0; i < 5; i++) {
             ringFeederServo.setPosition(1.0);

@@ -31,6 +31,7 @@ public class AutonomousOpmode extends LinearOpMode {
     DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
     Servo ringFeederServo, wobbleGoalServo;
     BNO055IMU imu;
+    Orientation angles;
     OpenCvWebcam webcam;
     WebcamName webcamName;
     RingDeterminationPipeline pipeline;
@@ -57,29 +58,37 @@ public class AutonomousOpmode extends LinearOpMode {
 
         if (opModeIsActive()) {
 
-            sleep(300);
-            ringNumber = pipeline.ringNumber;
+            addTelemetry();
 
             wobbleGoalServo.setPosition(0.22);
+            sleep(200);
+            ringNumber = pipeline.ringNumber;
 
             shootRings();
-            pickupRingStack();
-            shootRingStack();
+            dropOffFirstWobbleGoal();
+
+            if (ringNumber == 4){
+                pickupRingStack();
+            }
+
+            getSecondWobbleGoal();
+
+            if (ringNumber == 4){
+                shootRingStack();
+            }
+
             parkOverLaunchLine();
 
-            ringShooterMotor1.setPower(0);
-            ringShooterMotor2.setPower(0);
-            takingInRingsMotor.setPower(0);
+        }
+    }
 
-//            if (ringNumber == 1 || ringNumber == 4) {
-//                pickupRingStack();
-//                shootRings();
-//            }
-
-//            dropOffFirstWobbleGoal();
-//            getSecondWobbleGoal();
-//            parkOverLaunchLine();
-
+    private void addTelemetry() {
+        while (opModeIsActive()) {
+            telemetry.addData("Ring Number", ringNumber);
+            telemetry.addData("X Position", xPos);
+            telemetry.addData("Y Position", yPos);
+            telemetry.addData("Robot Heading", imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES));
+            telemetry.update();
         }
     }
 
@@ -96,14 +105,12 @@ public class AutonomousOpmode extends LinearOpMode {
 
     private void pickupRingStack() {
         takingInRingsMotor.setPower(-1.0);
-//        driveToAdvanced(48,50);
-        driveToBasic(51,50);
+        driveToAdvanced(51,50);
         driveToBasic(51,40);
     }
 
     private void parkOverLaunchLine() {
-//         driveToAdvanced(36,72);
-        driveToBasic(36,70);
+        driveToAdvanced(36,72);
     }
 
     private void shootRings() {
@@ -112,8 +119,7 @@ public class AutonomousOpmode extends LinearOpMode {
         ringShooterMotor2.setPower(-0.9);
 
         // drive to shooting area
-//        driveToAdvanced(34,61);
-        driveToBasic(36,59);
+        driveToAdvanced(36,59);
 
         for (int i = 0; i < 5; i++) {
             ringFeederServo.setPosition(1.0);
@@ -160,20 +166,17 @@ public class AutonomousOpmode extends LinearOpMode {
         if (ringNumber == 0) {
             // drop off wobble goal at target zone A
             driveToAdvanced(60,76);
-            sleep(1000);
-            driveToBasic(60,60);
+            driveToBasic(60,70);
         }
         else if (ringNumber == 1) {
             // drop off wobble goal at target zone B
             driveToAdvanced(36,88);
-            sleep(1000);
-            driveToBasic(36, 73);
+            driveToBasic(36, 82);
         }
         else {
             // drop off wobble goal at target zone C
             driveToAdvanced(54,94);
-            sleep(1000);
-            driveToBasic(54,79);
+            driveToBasic(54,88);
         }
     }
 
@@ -203,7 +206,6 @@ public class AutonomousOpmode extends LinearOpMode {
         ringFeederServo.setPosition(0.6);
 
         wobbleGoalServo = hardwareMap.get(Servo.class, "wobbleGoalServo");
-        //wobbleGoalServo.scaleRange(0.22,0.45);
         wobbleGoalServo.setPosition(0.1);
 
         // initialize webcam
@@ -223,12 +225,13 @@ public class AutonomousOpmode extends LinearOpMode {
         });
 
         // initialize imu
-/*        imu = hardwareMap.get(BNO055IMU.class, "imu");
+/*
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.mode = BNO055IMU.SensorMode.IMU;
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled = false;
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
         imu.initialize(parameters);*/
 
         telemetry.addData("Status", "Initialization Complete");
@@ -413,24 +416,12 @@ public class AutonomousOpmode extends LinearOpMode {
             if (yDiff > 0){
                 targetHeading = Math.toDegrees(Math.atan2(xDiff,yDiff));
 
-                telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-                telemetry.addData("targetHeading",targetHeading);
-                telemetry.addData("distance",(int)distance);
-                telemetry.update();
-                sleep(2000);
-
                 turnRight(targetHeading);
                 driveForward(distance);
                 turnLeft(targetHeading);
             }
             else {
                 targetHeading = 180 - Math.toDegrees(Math.atan2(xDiff,yDiff));
-
-                telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-                telemetry.addData("targetHeading",targetHeading);
-                telemetry.addData("distance",(int)distance);
-                telemetry.update();
-                sleep(3000);
 
                 turnLeft(targetHeading);
                 driveForward(-distance);
@@ -441,24 +432,12 @@ public class AutonomousOpmode extends LinearOpMode {
         else if (yDiff > 0){
             targetHeading = -Math.toDegrees(Math.atan2(xDiff,yDiff));
 
-            telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-            telemetry.addData("targetHeading",targetHeading);
-            telemetry.addData("distance",(int)distance);
-            telemetry.update();
-            sleep(3000);
-
             turnLeft(targetHeading);
             driveForward(distance);
             turnRight(targetHeading);
         }
         else {
             targetHeading = 180 + Math.toDegrees(Math.atan2(xDiff,yDiff));
-
-            telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-            telemetry.addData("targetHeading",targetHeading);
-            telemetry.addData("distance",(int)distance);
-            telemetry.update();
-            sleep(3000);
 
             turnRight(targetHeading);
             driveForward(-distance);
@@ -490,11 +469,6 @@ public class AutonomousOpmode extends LinearOpMode {
         double distance = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
 
         double encoderTicks = encoderTicksPerInch * (Math.abs(xDiff) + Math.abs(yDiff));
-        telemetry.addData("distance",(int)distance);
-        telemetry.addData("heading",heading);
-        telemetry.addData("encoderTicksPerInch",encoderTicksPerInch);
-        telemetry.update();
-        sleep(3000);
 
         encoderDrive(encoderTicks, drivePower, heading);
         xPos = xTarget;
@@ -537,11 +511,6 @@ public class AutonomousOpmode extends LinearOpMode {
 
         while (opModeIsActive() && (driveFL.isBusy() || driveFR.isBusy()))   //leftMotor.getCurrentPosition() < leftMotor.getTargetPosition())
         {
-            telemetry.addData("encoder-fwd-left", driveFL.getCurrentPosition() + "  busy=" + driveFL.isBusy());
-            telemetry.addData("encoder-back-left", driveBL.getCurrentPosition() + "  busy=" + driveFL.isBusy());
-            telemetry.addData("encoder-fwd-right", driveFR.getCurrentPosition() + "  busy=" + driveFR.isBusy());
-            telemetry.addData("encoder-back-right", driveBR.getCurrentPosition() + "  busy=" + driveFR.isBusy());
-            telemetry.update();
             idle();
         }
 
