@@ -34,14 +34,14 @@ public class AutonomousOpmodeMark extends LinearOpMode {
     OpenCvWebcam webcam;
     WebcamName webcamName;
     RingDeterminationPipeline pipeline;
-    double drivePower = 1.0, turnPower = 0.6;
+    double drivePower = 1.0, turnPower = 0.4;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
     double gearRatio = 2.0;
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double robotHeading = 0;
-    int xPos = 48, yPos = 0;
+    int xPos = 24, yPos = 72;
     int ringNumber;
 
     // called when the initialization button is  pressed
@@ -59,19 +59,75 @@ public class AutonomousOpmodeMark extends LinearOpMode {
 
             ringNumber = pipeline.ringNumber;
 
-            driveToAdvanced(72,65);
+/*            driveToAdvanced(72,65);
             driveToAdvanced(72,55);
             driveToAdvanced(36,59);
             driveToAdvanced(36,3);
             driveToAdvanced(60,3);
             driveToAdvanced(72,65);
-            driveToAdvanced(72,55);
-
+            driveToAdvanced(72,55);*/
+            turnAround();
+            sleep(1000);
+            turnAround();
+//            driveToAdvanced(72,24);
 
 
             while (opModeIsActive()){
                 telemetry.addData("Ring Number", ringNumber);
                 telemetry.update();
+            }
+
+        }
+    }
+
+    private void turnAround() {
+        if (robotHeading == 0) {
+            while (opModeIsActive() && Angle() >= 0){
+                driveFL.setPower(-turnPower);
+                driveFR.setPower(turnPower);
+                driveBL.setPower(-turnPower);
+                driveBR.setPower(turnPower);
+                telemetry.addData("Robot heading variable", robotHeading);
+                telemetry.addData("Angle() return", Angle());
+                telemetry.update();
+            }
+            driveFL.setPower(0);
+            driveFR.setPower(0);
+            driveBL.setPower(0);
+            driveBR.setPower(0);
+
+            robotHeading = 180;
+        }
+        else {
+            if (Angle() > 0) {
+                while (opModeIsActive() && Angle() > 0) {
+                    driveFL.setPower(turnPower);
+                    driveFR.setPower(-turnPower);
+                    driveBL.setPower(turnPower);
+                    driveBR.setPower(-turnPower);
+                    telemetry.addData("Robot heading variable", robotHeading);
+                    telemetry.addData("Angle() return", Angle());
+                    telemetry.update();
+                }
+                driveFL.setPower(0);
+                driveFR.setPower(0);
+                driveBL.setPower(0);
+                driveBR.setPower(0);
+            }
+            else {
+                while (opModeIsActive() && Angle() < 0) {
+                    driveFL.setPower(-turnPower);
+                    driveFR.setPower(turnPower);
+                    driveBL.setPower(-turnPower);
+                    driveBR.setPower(turnPower);
+                    telemetry.addData("Robot heading variable", robotHeading);
+                    telemetry.addData("Angle() return", Angle());
+                    telemetry.update();
+                }
+                driveFL.setPower(0);
+                driveFR.setPower(0);
+                driveBL.setPower(0);
+                driveBR.setPower(0);
             }
 
         }
@@ -210,13 +266,13 @@ public class AutonomousOpmodeMark extends LinearOpMode {
         });
 
         // initialize imu
-/*        imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.mode = BNO055IMU.SensorMode.IMU;
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled = false;
-        imu.initialize(parameters);*/
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
 
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
@@ -389,15 +445,8 @@ public class AutonomousOpmodeMark extends LinearOpMode {
         Orientation orientation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         double heading = orientation.firstAngle;
 
-        if (xDiff == 0){
-            driveForward(yDiff);
-        }
-        else if (yDiff == 0){
-            strafeRight(xDiff);
-        }
-
-        else if (xDiff > 0){
-            if (yDiff > 0){
+        if (xDiff >= 0){
+            if (yDiff >= 0){
                 targetHeading = Math.toDegrees(Math.atan2(xDiff,yDiff));
 
                 telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
@@ -417,7 +466,7 @@ public class AutonomousOpmodeMark extends LinearOpMode {
                 telemetry.addData("targetHeading",targetHeading);
                 telemetry.addData("distance",(int)distance);
                 telemetry.update();
-                sleep(3000);
+                sleep(2000);
 
                 turnLeft(targetHeading);
                 driveForward(-distance);
@@ -425,14 +474,14 @@ public class AutonomousOpmodeMark extends LinearOpMode {
             }
 
         }
-        else if (yDiff > 0){
+        else if (yDiff >= 0){
             targetHeading = -Math.toDegrees(Math.atan2(xDiff,yDiff));
 
             telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
             telemetry.addData("targetHeading",targetHeading);
             telemetry.addData("distance",(int)distance);
             telemetry.update();
-            sleep(3000);
+            sleep(2000);
 
             turnLeft(targetHeading);
             driveForward(distance);
