@@ -25,7 +25,7 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 @Autonomous(name = "Autonomous", group = "lmsbots")
 
-public class AutonomousOpmodeLeft extends LinearOpMode {
+public class AutonomousOpmode extends LinearOpMode {
 
     //  sets variables for drive motors, IMU, etc.
     DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;

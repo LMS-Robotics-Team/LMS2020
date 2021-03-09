@@ -5,12 +5,18 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
 @TeleOp
 public class Teleop4 extends LinearOpMode {
 
+
     // sets variables for motors and servos
     private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
-    Servo wobbleGoalServo, ringFeederServo;
+    Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
+    Orientation angles;
+    double towerGoalRingMotorSpeed = -0.85, powerShotRingMotorSpeed = -0.7;
+    double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.5;
 
     // creates variables for drive inputs from controllers
     private double forwardBackward, leftRight, rotate;
@@ -27,65 +33,77 @@ public class Teleop4 extends LinearOpMode {
         // runs until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
 
-            ringShooterMotor1.setPower(-0.9);
-            ringShooterMotor2.setPower(-0.9);
-            takingInRingsMotor.setPower(-1);
-
             // sets values of variables for gamepad1 (start+a) inputs for driving
             forwardBackward = -gamepad1.left_stick_y - gamepad1.right_stick_y;
             leftRight = gamepad1.right_trigger - gamepad1.left_trigger;
             rotate = -gamepad1.left_stick_y + gamepad1.right_stick_y;
 
-           // driving in all directions and rotating
+            // function to update telemetry
+            addTelemetry();
+
+            // driving in all directions and rotating
             driveFL.setPower(forwardBackward + leftRight + rotate);
             driveFR.setPower(forwardBackward - leftRight - rotate);
             driveBL.setPower(forwardBackward - leftRight + rotate);
             driveBR.setPower(forwardBackward + leftRight - rotate);
 
-            // code for taking in rings
+            // Press A for ring intake motor
             if (gamepad2.a) {
-                if (takingInRingsMotor.getPower() == 0){
-                    takingInRingsMotor.setPower(-1.0);
+                if (takingInRingsMotor.getPower() < 0){
+                    takingInRingsMotor.setPower(1);
                 }
                 else {
-                    takingInRingsMotor.setPower(0);
+                    takingInRingsMotor.setPower(-1);
                 }
             }
 
-            // code for rotating wobble goal grabber
-            if (gamepad2.b){
-                if (wobbleGoalServo.getPosition() != 0){
-                    wobbleGoalServo.setPosition(0);
+            // Right stick for wobble goal servo
+            if (gamepad2.b) {
+                if (wobbleGoalServo.getPosition() < 0.3) {
+                    wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
                 }
                 else {
-                    wobbleGoalServo.setPosition(1);
+                    wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
                 }
             }
 
-            // feeder servo
+            // Press right trigger for ring feeder servo
             if (gamepad2.right_trigger == 1) {
-                if (ringShooterMotor1.getPower() < -0.8){
-                    ringFeederServo.setPosition(0.9);
-                    sleep(500);
+                if (ringShooterMotor1.getPower() <= powerShotRingMotorSpeed){
+                    ringFeederServo.setPosition(1);
+                    sleep(300);
                     ringFeederServo.setPosition(0.6);
                 }
             }
 
-
-            // shooter motor
-            if (gamepad2.y) {
-                if (ringShooterMotor1.getPower() == 0) {
-                    ringShooterMotor1.setPower(-0.9);
-                    ringShooterMotor2.setPower(-0.9);
-
-                } else {
-                    ringShooterMotor1.setPower(0);
-                    ringShooterMotor2.setPower(0);
+            // Press left trigger to unlock and lock wobble goal release servo
+            if (gamepad2.left_trigger == 1) {
+                if (wobbleGoalReleaseServo.getPosition() == 0) {
+                    wobbleGoalReleaseServo.setPosition(0.3);
+                }
+                else {
+                    wobbleGoalReleaseServo.setPosition(0);
                 }
             }
 
-            // function to update telemetry
-            addTelemetry();
+            // press Y for shooter motor for tower goal
+            if (gamepad2.y) {
+                if (ringShooterMotor1.getPower() < powerShotRingMotorSpeed) {
+                    ringShooterMotor1.setPower(0);
+                    ringShooterMotor2.setPower(0);
+
+                } else {
+                    ringShooterMotor1.setPower(towerGoalRingMotorSpeed);
+                    ringShooterMotor2.setPower(towerGoalRingMotorSpeed);
+                }
+            }
+
+            // press X for shooter motor for powershot
+            if (gamepad2.x) {
+                ringShooterMotor1.setPower(powerShotRingMotorSpeed);
+                ringShooterMotor2.setPower(powerShotRingMotorSpeed);
+            }
+
         }
     }
 
@@ -120,15 +138,14 @@ public class Teleop4 extends LinearOpMode {
 
         // maps ring feeder servo variable to hardware configuration name
         ringFeederServo = hardwareMap.get(Servo.class, "ringFeederServo");
-
-//        ringFeederServo.scaleRange(0.6,0.9); // sets min and max positions of servo
         ringFeederServo.setPosition(0.6); // sets initial position of servo
 
         // maps wobble goal servo variable to hardware configuration name
         wobbleGoalServo = hardwareMap.get(Servo.class, "wobbleGoalServo");
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition); // sets initial position of servo
 
-        wobbleGoalServo.scaleRange(0.22,0.45); // sets min and max positions of servo
-        wobbleGoalServo.setPosition(0); // sets initial position of servo
+        wobbleGoalReleaseServo = hardwareMap.get(Servo.class, "wobbleGoalReleaseServo");
+        wobbleGoalReleaseServo.setPosition(0);
 
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
@@ -136,16 +153,9 @@ public class Teleop4 extends LinearOpMode {
 
     // class to add and update telemetry
     private void addTelemetry() {
-        telemetry.addData("gamepad1","");
-        telemetry.addData("Left stick up/down"," Forward/backward");
-        telemetry.addData("Left/right triggers"," Strafe left/right");
-        telemetry.addData("Right stick left/right"," Rotate left/right");
-        telemetry.addData("","");
-        telemetry.addData("gamepad2","");
-        telemetry.addData("A"," Ring Intake Motor On/Off");
-        telemetry.addData("B"," Wobble Goal Servo");
-        telemetry.addData("X"," Ring Feeder Servo");
-        telemetry.addData("Y"," Ring Shooter Motors On/Off");
+        telemetry.addData("Ring shooter motor speed", ringShooterMotor1.getPower());
+        telemetry.addData("Ring intake motor speed", takingInRingsMotor.getPower());
+
         telemetry.update();
     }
 }
