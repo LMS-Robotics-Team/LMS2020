@@ -23,26 +23,29 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name = "Autonomous Wednesday Girls", group = "lmsbots")
+@Autonomous
 
-public class AutonomousOpmodeWedG extends LinearOpMode {
+public class AutonomousDriveTest extends LinearOpMode {
 
     //  sets variables for drive motors, IMU, etc.
     DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
-    Servo ringFeederServo, wobbleGoalServo;
+    Servo ringFeederServo, wobbleGoalServo, wobbleGoalReleaseServo;
     BNO055IMU imu;
     OpenCvWebcam webcam;
     WebcamName webcamName;
     RingDeterminationPipeline pipeline;
-    double drivePower = 1.0, turnPower = 0.6;
+    double drivePower = 1, turnPower = 1;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
     double gearRatio = 2.0;
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double robotHeading = 0;
-    int xPos = 72, yPos = 0;
+    int xPos = 0, yPos = 0;
     int ringNumber;
+    double towerGoalMotorSpeed = -0.79, powerShotMotorSpeed = -0.65;
+    double wobbleGoalLockOpen = 0, wobbleGoalLockClosed = 0.3;
+    double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
     // called when the initialization button is  pressed
     @Override
@@ -57,104 +60,244 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
 
         if (opModeIsActive()) {
 
-            ringNumber = pipeline.ringNumber;
-
-            driveToBasic(36,59);
+            wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
 
         }
     }
 
-    private void shootRingStack() {
-        driveToBasic(32,59);
+    private void shootPowerShot() {
 
-        for (int i = 0; i < 5; i++) {
+        // start ring shooter
+        ringShooterMotor1.setPower(powerShotMotorSpeed);
+        ringShooterMotor2.setPower(powerShotMotorSpeed);
+
+        // drive to shooting spot
+        driveToAdvanced(24,60);
+
+        // shoot center powershot
+        for (int i = 0; i < 2; i++) {
             ringFeederServo.setPosition(1.0);
-            sleep(400);
+            sleep(300);
             ringFeederServo.setPosition(0.6);
-            sleep(400);
+            sleep(300);
+        }
+        turnLeft(29);
+
+        // shoot left powershot
+        turnLeft(30);
+        for (int i = 0; i < 2; i++) {
+            ringFeederServo.setPosition(1.0);
+            sleep(300);
+            ringFeederServo.setPosition(0.6);
+            sleep(300);
+        }
+        turnRight(59);
+
+        // shoot right powershot
+        turnRight(60);
+        for (int i = 0; i < 2; i++) {
+            ringFeederServo.setPosition(1.0);
+            sleep(300);
+            ringFeederServo.setPosition(0.6);
+            sleep(300);
+        }
+        turnLeft(29);
+    }
+
+    private void shootRingStack() {
+        driveToBasic(36,64);
+        sleep(2500);
+        takingInRingsMotor.setPower(0);
+
+        if (ringNumber == 4) {
+            //pulls trigger 4x to make sure all three extra rings are shot
+            for (int i = 0; i < 4; i++) {
+                ringFeederServo.setPosition(1.0);
+                sleep(300);
+                ringFeederServo.setPosition(0.6);
+                sleep(600);
+            }
+        }
+        else {
+            //pulls trigger 2x to make sure one extra ring is shot
+            for (int i = 0; i < 2; i++) {
+                ringFeederServo.setPosition(1.0);
+                sleep(300);
+                ringFeederServo.setPosition(0.6);
+                sleep(300);
+            }
         }
     }
 
     private void pickupRingStack() {
-        takingInRingsMotor.setPower(-1.0);
-//        driveToAdvanced(48,50);
-        driveToBasic(51,50);
+
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+        driveToAdvanced(51,54);
+
+        if(ringNumber == 4) {
+            driveToBasic(51,52);
+            driveToBasic(51, 53);
+        }
+
+        takingInRingsMotor.setPower(-1);
+        drivePower = 0.3;
+        sleep(300);
         driveToBasic(51,40);
+        drivePower = 1;
     }
 
     private void parkOverLaunchLine() {
-//         driveToAdvanced(36,72);
-        driveToBasic(36,70);
+        driveToAdvanced(36,72);
     }
 
-    private void shootRings() {
-        // start ring shooter motor
-        ringShooterMotor1.setPower(-0.9);
-        ringShooterMotor2.setPower(-0.9);
+    private void shootTowerGoal() {
 
-        // drive to shooting area
-//        driveToAdvanced(34,61);
-        driveToBasic(36,59);
+        // start ring shooter
+        ringShooterMotor1.setPower(towerGoalMotorSpeed);
+        ringShooterMotor2.setPower(towerGoalMotorSpeed);
 
-        for (int i = 0; i < 5; i++) {
+        // drive to shooting spot
+        driveToBasic(32,64);
+        driveToBasic(34,64);
+
+        // pulls trigger to shoot rings 5x to make sure all three preloaded rings are shot
+        for (int i = 0; i < 4; i++) {
             ringFeederServo.setPosition(1.0);
-            sleep(400);
+            sleep(500);
             ringFeederServo.setPosition(0.6);
-            sleep(400);
+            sleep(500);
+        }
+    }
+
+    private void turnAround() {
+        if (robotHeading == 0) {
+            while (opModeIsActive() && Angle() < 174){
+                driveFL.setPower(-turnPower);
+                driveFR.setPower(turnPower);
+                driveBL.setPower(-turnPower);
+                driveBR.setPower(turnPower);
+            }
+            driveFL.setPower(0);
+            driveFR.setPower(0);
+            driveBL.setPower(0);
+            driveBR.setPower(0);
+
+            robotHeading = 180;
+        }
+        else {
+            if (Angle() > 0) {
+                while (opModeIsActive() && Angle() > 6) {
+                    driveFL.setPower(turnPower);
+                    driveFR.setPower(-turnPower);
+                    driveBL.setPower(turnPower);
+                    driveBR.setPower(-turnPower);
+                }
+                driveFL.setPower(0);
+                driveFR.setPower(0);
+                driveBL.setPower(0);
+                driveBR.setPower(0);
+            }
+            else {
+                while (opModeIsActive() && Angle() < -6) {
+                    driveFL.setPower(-turnPower);
+                    driveFR.setPower(turnPower);
+                    driveBL.setPower(-turnPower);
+                    driveBR.setPower(turnPower);
+                }
+                driveFL.setPower(0);
+                driveFR.setPower(0);
+                driveBL.setPower(0);
+                driveBR.setPower(0);
+            }
+
         }
     }
 
     private void getSecondWobbleGoal() {
-        driveToAdvanced(36,5);
-        driveToBasic(60,5);
-        drivePower = 0.2;
-        driveToBasic(60,20);
-        drivePower = 1.0;
+
+/*        driveToBasic(64,36); // drive close to second wobble goal
+        drivePower = 0.2; // change drive power so it will go slower toward second wobble goal
+        turnAround(); // turn around to face second wobble goal
+        driveToBasic(64,45); // move closer to wobble goal to get into attachment
+        sleep(1000);
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition); // raise attachment to vertical
+        drivePower = 1;
+        driveToBasic(64,36); // go back to original position before turning around
+        turnAround(); // turn around
+        wobbleGoalServo.setPosition(0.45);  // horizontal position for attachment*/
+
+        // push method
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+        driveToBasic(34,4);
+        driveToBasic(67,4);
 
         if (ringNumber == 0) {
             // drop off wobble goal at target zone A
-            driveToAdvanced(55,70);
-//        driveToBasic(54,70);
+/*            driveToBasic(74, 58);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            wobbleGoalServo.setPosition(0.5);
+            driveToBasic(74,48);*/
 
-            sleep(1000);
-            driveToBasic(54,55);
+            // push method
+            driveToAdvanced(78,60);
+            driveToBasic(78, 50);
         }
         else if (ringNumber == 1) {
             // drop off wobble goal at target zone B
-            driveToAdvanced(36,88);
-            sleep(1000);
-            driveToBasic(36, 73);
+/*            driveToBasic(48, 78);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            wobbleGoalServo.setPosition(0.5);
+            driveToBasic(48,68);*/
+
+            // push method
+//            driveToBasic(62,78);
+//            driveToBasic(74, 87);
+//            driveToBasic(62,87);
+//            driveToBasic(62,66);
         }
         else {
             // drop off wobble goal at target zone C
-            driveToAdvanced(54,94);
-            sleep(1000);
-            driveToBasic(54,79);
+/*            driveToBasic(72, 100);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            wobbleGoalServo.setPosition(0.5);
+            driveToBasic(72,90);*/
+
+            // push method
+            driveToBasic(64,110);
+            driveToBasic(40,120);
+            driveToBasic(58,120);
         }
 
     }
 
     private void dropOffFirstWobbleGoal() {
 
-        wobbleGoalServo.setPosition(0.45);
+        // horizontal and ready to drop
+        wobbleGoalServo.setPosition(0.5);
 
         if (ringNumber == 0) {
             // drop off wobble goal at target zone A
-            driveToAdvanced(60,76);
-            sleep(1000);
-            driveToBasic(60,60);
+            driveToBasic(70,70);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            sleep(500);
+            driveToBasic(70,60);
         }
         else if (ringNumber == 1) {
             // drop off wobble goal at target zone B
-            driveToAdvanced(36,88);
-            sleep(1000);
-            driveToBasic(36, 73);
+            driveToBasic(52,90);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            sleep(500);
+            driveToBasic(52, 80);
+            sleep(500);
         }
         else {
             // drop off wobble goal at target zone C
-            driveToAdvanced(54,94);
-            sleep(1000);
-            driveToBasic(54,79);
+            driveToBasic(76,112);
+            //driveToAdvanced(80,112);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            sleep(500);
+            driveToBasic(76,102);
+            sleep(400);
         }
     }
 
@@ -184,8 +327,10 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
         ringFeederServo.setPosition(0.6);
 
         wobbleGoalServo = hardwareMap.get(Servo.class, "wobbleGoalServo");
-        //wobbleGoalServo.scaleRange(0.22,0.45);
-        wobbleGoalServo.setPosition(0.1);
+        wobbleGoalServo.setPosition(0);
+
+        wobbleGoalReleaseServo = hardwareMap.get(Servo.class, "wobbleGoalReleaseServo");
+        wobbleGoalReleaseServo.setPosition(wobbleGoalLockClosed);
 
         // initialize webcam
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");
@@ -204,72 +349,18 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
         });
 
         // initialize imu
-/*        imu = hardwareMap.get(BNO055IMU.class, "imu");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.mode = BNO055IMU.SensorMode.IMU;
         parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
         parameters.accelUnit = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC;
         parameters.loggingEnabled = false;
-        imu.initialize(parameters);*/
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
 
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
     }
 
-    // this method determines how many rings there are at the start of the game - 0, 1 or 4
-    private int determineRingNumber() {
-        int ringNumber1, ringNumber2, ringNumber3, ringNumber4, finalRingNumber;
-
-        sleep(3000);
-        if (pipeline.ringNumber == 4) {
-            ringNumber1 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber1 = 1;
-        }
-        else {
-            ringNumber1 = 0;
-        }
-        sleep(250);
-        if (pipeline.ringNumber == 4) {
-            ringNumber2 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber2 = 1;
-        }
-        else {
-            ringNumber2 = 0;
-        }
-        sleep(250);
-        if (pipeline.ringNumber == 4) {
-            ringNumber3 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber3 = 1;
-        }
-        else {
-            ringNumber3 = 0;
-        }
-        sleep(250);
-        if (pipeline.ringNumber == 4) {
-            ringNumber4 = 4;
-        }
-        else if (pipeline.ringNumber == 1) {
-            ringNumber4 = 1;
-        }
-        else {
-            ringNumber4 = 0;
-        }
-
-        finalRingNumber = (int)(((ringNumber1 + ringNumber2 + ringNumber3 + ringNumber4)/4));
-        if (finalRingNumber == 2){
-            finalRingNumber = 1;
-        }
-        else if (finalRingNumber == 3){
-            finalRingNumber = 4;
-        }
-        return finalRingNumber;
-    }
 
     // this method drives autonomously by strafing left/right and then moving forward/backward
     private void driveToBasic(int xTarget, int yTarget) {
@@ -380,8 +471,8 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
         double distance = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
 
         double targetHeading;
-        Orientation orientation = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
-        double heading = orientation.firstAngle;
+        Orientation angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        double heading = angles.firstAngle;
 
         if (xDiff == 0){
             driveForward(yDiff);
@@ -394,24 +485,12 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
             if (yDiff > 0){
                 targetHeading = Math.toDegrees(Math.atan2(xDiff,yDiff));
 
-                telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-                telemetry.addData("targetHeading",targetHeading);
-                telemetry.addData("distance",(int)distance);
-                telemetry.update();
-                sleep(2000);
-
                 turnRight(targetHeading);
                 driveForward(distance);
                 turnLeft(targetHeading);
             }
             else {
                 targetHeading = 180 - Math.toDegrees(Math.atan2(xDiff,yDiff));
-
-                telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-                telemetry.addData("targetHeading",targetHeading);
-                telemetry.addData("distance",(int)distance);
-                telemetry.update();
-                sleep(3000);
 
                 turnLeft(targetHeading);
                 driveForward(-distance);
@@ -422,24 +501,12 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
         else if (yDiff > 0){
             targetHeading = -Math.toDegrees(Math.atan2(xDiff,yDiff));
 
-            telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-            telemetry.addData("targetHeading",targetHeading);
-            telemetry.addData("distance",(int)distance);
-            telemetry.update();
-            sleep(3000);
-
             turnLeft(targetHeading);
             driveForward(distance);
             turnRight(targetHeading);
         }
         else {
             targetHeading = 180 + Math.toDegrees(Math.atan2(xDiff,yDiff));
-
-            telemetry.addData("Going to"," " + xTarget + ", " + yTarget);
-            telemetry.addData("targetHeading",targetHeading);
-            telemetry.addData("distance",(int)distance);
-            telemetry.update();
-            sleep(3000);
 
             turnRight(targetHeading);
             driveForward(-distance);
@@ -471,10 +538,6 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
         double distance = Math.sqrt((xDiff*xDiff)+(yDiff*yDiff));
 
         double encoderTicks = encoderTicksPerInch * (Math.abs(xDiff) + Math.abs(yDiff));
-        telemetry.addData("distance",(int)distance);
-        telemetry.addData("heading",heading);
-        telemetry.addData("encoderTicksPerInch",encoderTicksPerInch);
-        telemetry.update();
 
         encoderDrive(encoderTicks, drivePower, heading);
         xPos = xTarget;
@@ -517,11 +580,6 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
 
         while (opModeIsActive() && (driveFL.isBusy() || driveFR.isBusy()))   //leftMotor.getCurrentPosition() < leftMotor.getTargetPosition())
         {
-            telemetry.addData("encoder-fwd-left", driveFL.getCurrentPosition() + "  busy=" + driveFL.isBusy());
-            telemetry.addData("encoder-back-left", driveBL.getCurrentPosition() + "  busy=" + driveFL.isBusy());
-            telemetry.addData("encoder-fwd-right", driveFR.getCurrentPosition() + "  busy=" + driveFR.isBusy());
-            telemetry.addData("encoder-back-right", driveBR.getCurrentPosition() + "  busy=" + driveFR.isBusy());
-            telemetry.update();
             idle();
         }
 
@@ -698,7 +756,7 @@ public class AutonomousOpmodeWedG extends LinearOpMode {
         static final Scalar BLUE = new Scalar(0, 0, 255);
 
         // Values that define the region we want to capture and analyze
-        static final Point TOP_LEFT_ANCHOR_POINT = new Point(175,180);
+        static final Point TOP_LEFT_ANCHOR_POINT = new Point(193,180);
 
         static final int REGION_WIDTH = 50;
         static final int REGION_HEIGHT = 35;

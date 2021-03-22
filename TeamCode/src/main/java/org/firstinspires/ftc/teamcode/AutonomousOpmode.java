@@ -23,7 +23,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
 import org.openftc.easyopencv.OpenCvWebcam;
 
-@Autonomous(name = "Autonomous", group = "lmsbots")
+@Autonomous
 
 public class AutonomousOpmode extends LinearOpMode {
 
@@ -34,7 +34,7 @@ public class AutonomousOpmode extends LinearOpMode {
     OpenCvWebcam webcam;
     WebcamName webcamName;
     RingDeterminationPipeline pipeline;
-    double drivePower = 1.0, turnPower = 1;
+    double drivePower = 1, turnPower = 1;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
     double gearRatio = 2.0;
@@ -43,7 +43,9 @@ public class AutonomousOpmode extends LinearOpMode {
     double robotHeading = 0;
     int xPos = 32, yPos = 0;
     int ringNumber;
-    double towerGoalMotorSpeed = -0.8, powerShotMotorSpeed = -0.7;
+    double towerGoalMotorSpeed = -0.79, powerShotMotorSpeed = -0.65;
+    double wobbleGoalLockOpen = -0.1, wobbleGoalLockClosed = 0.3;
+    double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
     // called when the initialization button is  pressed
     @Override
@@ -58,25 +60,22 @@ public class AutonomousOpmode extends LinearOpMode {
 
         if (opModeIsActive()) {
 
-            wobbleGoalServo.setPosition(0.22);
-            sleep(300);
+            wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+            sleep(200);
             ringNumber = pipeline.ringNumber;
-            telemetry.addData("Ring Number", ringNumber);
-            telemetry.update();
 
             shootRings();
             dropOffFirstWobbleGoal();
-            getSecondWobbleGoal();
 
-            // only tries to pick up ring stack if there are rings there
-/*            if (ringNumber == 4 || ringNumber == 1) {
-                pickupRingStack();
+            if (ringNumber == 0) {
+                getSecondWobbleGoal();
             }
 
-            // only tries to shoot extra rings if there are rings there
-            if (ringNumber == 4 || ringNumber == 1){
+            // only tries to pick up ring stack if there are rings there
+            if (ringNumber == 1 || ringNumber == 4) {
+                pickupRingStack();
                 shootRingStack();
-            }*/
+            }
 
             parkOverLaunchLine();
 
@@ -84,49 +83,71 @@ public class AutonomousOpmode extends LinearOpMode {
     }
 
     private void shootRingStack() {
-        driveToBasic(36,60);
+        driveToBasic(36,64);
+        sleep(2500);
+        takingInRingsMotor.setPower(0);
 
         if (ringNumber == 4) {
-            //pulls trigger 5x to make sure all three extra rings are shot
-            for (int i = 0; i < 5; i++) {
+            //pulls trigger 4x to make sure all three extra rings are shot
+            for (int i = 0; i < 4; i++) {
                 ringFeederServo.setPosition(1.0);
-                sleep(400);
+                sleep(300);
                 ringFeederServo.setPosition(0.6);
-                sleep(400);
+                sleep(600);
             }
         }
         else {
             //pulls trigger 2x to make sure one extra ring is shot
             for (int i = 0; i < 2; i++) {
                 ringFeederServo.setPosition(1.0);
-                sleep(400);
+                sleep(300);
                 ringFeederServo.setPosition(0.6);
-                sleep(400);
+                sleep(300);
             }
         }
     }
 
     private void pickupRingStack() {
-        takingInRingsMotor.setPower(-1.0);
-        driveToAdvanced(45,55);
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
 
-        if (ringNumber == 1) {
-            driveToBasic(45,52);
-        }
-        else {
-            sleep(200);
-            driveToBasic(45,52);
-            sleep(200);
-            driveToBasic(45,50);
-            sleep(200);
-            driveToBasic(45,48);
+        if (ringNumber == 1){
+            takingInRingsMotor.setPower(-1.0);
+            driveToBasic(51,54);
+            drivePower=0.5;
             sleep(1000);
-            takingInRingsMotor.setPower(0);
+            driveToBasic(51,45);
+            drivePower=1;
+            sleep(2000);
+        }
+
+        if (ringNumber == 4) {
+            driveToBasic(52,52);
+            sleep(500);
+            takingInRingsMotor.setPower(-1);
+            driveToBasic(52,46);
+            sleep(500);
+            driveToBasic(52,42);
+            sleep(500);
+            driveToBasic(52,38);
+            sleep(500);
+//            driveToBasic(48,50);
+//            driveToBasic(48,54);
         }
     }
 
     private void parkOverLaunchLine() {
-        driveToAdvanced(72,72);
+        if (ringNumber == 0) {
+            // drop off wobble goal at target zone A
+            driveToBasic(36,72);
+        }
+        else if (ringNumber == 1) {
+            driveToAdvanced(36, 72);
+        }
+        else {
+            // drop off wobble goal at target zone C
+            driveToAdvanced(36,72);
+        }
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
     }
 
     private void shootRings() {
@@ -136,14 +157,15 @@ public class AutonomousOpmode extends LinearOpMode {
         ringShooterMotor2.setPower(towerGoalMotorSpeed);
 
         // drive to shooting spot
-        driveToBasic(37,62);
+        driveToBasic(32,64);
+        driveToBasic(34,64);
 
-        // pulls trigger to shoot rings five times to make sure all three preloaded rings are shot
+        // pulls trigger to shoot rings 5x to make sure all three preloaded rings are shot
         for (int i = 0; i < 4; i++) {
             ringFeederServo.setPosition(1.0);
-            sleep(300);
+            sleep(500);
             ringFeederServo.setPosition(0.6);
-            sleep(300);
+            sleep(500);
         }
     }
 
@@ -193,73 +215,89 @@ public class AutonomousOpmode extends LinearOpMode {
 
     private void getSecondWobbleGoal() {
 
-        driveToBasic(64,36);
-        turnAround();
-        drivePower = 0.3;
-        driveToBasic(64,54);
-        wobbleGoalServo.setPosition(0.5);
-        sleep(300);
-        wobbleGoalServo.setPosition(0.45);
-        sleep(300);
-        wobbleGoalServo.setPosition(0.22);
+/*        driveToBasic(64,36); // drive close to second wobble goal
+        drivePower = 0.2; // change drive power so it will go slower toward second wobble goal
+        turnAround(); // turn around to face second wobble goal
+        driveToBasic(64,45); // move closer to wobble goal to get into attachment
+        sleep(1000);
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition); // raise attachment to vertical
         drivePower = 1;
-        driveToBasic(64,36);
-        turnAround();
-        wobbleGoalServo.setPosition(0.45);
-        driveToBasic(72, 100);
-        wobbleGoalReleaseServo.setPosition(0);
-        wobbleGoalServo.setPosition(0.5);
-        driveToBasic(72,90);
+        driveToBasic(64,36); // go back to original position before turning around
+        turnAround(); // turn around
+        wobbleGoalServo.setPosition(0.45);  // horizontal position for attachment*/
 
+        // push method
+        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+        driveToBasic(34,4);
+        driveToBasic(67,4);
 
-
-/*        if (ringNumber == 0) {
+        if (ringNumber == 0) {
             // drop off wobble goal at target zone A
-            driveToBasic(55,70);
-            sleep(300);
-            driveToBasic(54,55);
+/*            driveToBasic(74, 58);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            wobbleGoalServo.setPosition(0.5);
+            driveToBasic(74,48);*/
+
+            // push method
+            driveToAdvanced(78,60);
+            driveToBasic(78, 50);
         }
         else if (ringNumber == 1) {
             // drop off wobble goal at target zone B
-            driveToBasic(36,88);
-            sleep(300);
-            driveToBasic(36, 73);
+/*            driveToBasic(48, 78);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            wobbleGoalServo.setPosition(0.5);
+            driveToBasic(48,68);*/
+
+            // push method
+//            driveToBasic(62,78);
+//            driveToBasic(74, 87);
+//            driveToBasic(62,87);
+//            driveToBasic(62,66);
         }
         else {
             // drop off wobble goal at target zone C
-            driveToBasic(54,94);
-            sleep(300);
-            driveToBasic(54,79);
-        }*/
+/*            driveToBasic(72, 100);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+            wobbleGoalServo.setPosition(0.5);
+            driveToBasic(72,90);*/
+
+            // push method
+            driveToBasic(64,110);
+            driveToBasic(40,120);
+            driveToBasic(58,120);
+        }
 
     }
 
     private void dropOffFirstWobbleGoal() {
 
         // horizontal and ready to drop
-        wobbleGoalServo.setPosition(0.55);
+        wobbleGoalServo.setPosition(0.5);
 
         if (ringNumber == 0) {
             // drop off wobble goal at target zone A
             driveToBasic(70,70);
-            wobbleGoalReleaseServo.setPosition(0);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
             sleep(500);
             driveToBasic(70,60);
         }
         else if (ringNumber == 1) {
             // drop off wobble goal at target zone B
             driveToBasic(52,90);
-            wobbleGoalReleaseServo.setPosition(0);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
             sleep(500);
             driveToBasic(52, 80);
+            sleep(500);
         }
         else {
             // drop off wobble goal at target zone C
-            driveToBasic(74,112);
+            driveToBasic(76,112);
             //driveToAdvanced(80,112);
-            wobbleGoalReleaseServo.setPosition(0);
+            wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
             sleep(500);
-            driveToBasic(74,102);
+            driveToBasic(76,102);
+            sleep(400);
         }
     }
 
@@ -292,7 +330,7 @@ public class AutonomousOpmode extends LinearOpMode {
         wobbleGoalServo.setPosition(0);
 
         wobbleGoalReleaseServo = hardwareMap.get(Servo.class, "wobbleGoalReleaseServo");
-        wobbleGoalReleaseServo.setPosition(0.3);
+        wobbleGoalReleaseServo.setPosition(wobbleGoalLockClosed);
 
         // initialize webcam
         webcamName = hardwareMap.get(WebcamName.class, "Webcam 1");

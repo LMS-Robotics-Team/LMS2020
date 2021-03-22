@@ -5,12 +5,15 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
 @TeleOp
-public class Teleop1 extends LinearOpMode {
+public class TeleopOneGamepad extends LinearOpMode {
 
     // sets variables for motors and servos
     private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
     Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
+    Orientation angles;
     double towerGoalRingMotorSpeed = -0.79, powerShotRingMotorSpeed = -0.7;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
@@ -68,6 +71,7 @@ public class Teleop1 extends LinearOpMode {
                 else {
                     wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
                 }
+                sleep(500);
             }
 
             // Press right trigger for ring feeder servo
@@ -87,6 +91,7 @@ public class Teleop1 extends LinearOpMode {
                 else {
                     wobbleGoalReleaseServo.setPosition(0);
                 }
+                sleep(1000);
             }
 
             // press Y for shooter motor for tower goal
@@ -127,8 +132,6 @@ public class Teleop1 extends LinearOpMode {
                 ringShooterMotor1.setPower(-0.55);
                 ringShooterMotor2.setPower(-0.55);
             }
-
-
         }
     }
 

@@ -5,13 +5,16 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
 @TeleOp
-public class Teleop1 extends LinearOpMode {
+public class Teleop6 extends LinearOpMode {
 
     // sets variables for motors and servos
     private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
     Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
-    double towerGoalRingMotorSpeed = -0.79, powerShotRingMotorSpeed = -0.7;
+    Orientation angles;
+    double towerGoalRingMotorSpeed = -0.8, powerShotRingMotorSpeed = -0.7;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
     // creates variables for drive inputs from controllers
@@ -32,7 +35,7 @@ public class Teleop1 extends LinearOpMode {
             // sets values of variables for gamepad1 (start+a) inputs for driving
             forwardBackward = -gamepad1.left_stick_y;
             leftRight = gamepad1.left_stick_x;
-            rotate = gamepad1.right_stick_x;
+            rotate = gamepad1.right_trigger - gamepad1.left_trigger;
 
             // driving in all directions and rotating
             driveFL.setPower(forwardBackward + leftRight + rotate);
@@ -94,12 +97,12 @@ public class Teleop1 extends LinearOpMode {
                 if (ringShooterMotor1.getPower() < powerShotRingMotorSpeed) {
                     ringShooterMotor1.setPower(0);
                     ringShooterMotor2.setPower(0);
+
                 }
                 else {
                     ringShooterMotor1.setPower(towerGoalRingMotorSpeed);
                     ringShooterMotor2.setPower(towerGoalRingMotorSpeed);
                 }
-                sleep(1000);
             }
 
             // press X for shooter motor for powershot
@@ -122,12 +125,6 @@ public class Teleop1 extends LinearOpMode {
                 ringShooterMotor1.setPower(-0.6);
                 ringShooterMotor2.setPower(-0.6);
             }
-
-            if (gamepad2.dpad_right) {
-                ringShooterMotor1.setPower(-0.55);
-                ringShooterMotor2.setPower(-0.55);
-            }
-
 
         }
     }
