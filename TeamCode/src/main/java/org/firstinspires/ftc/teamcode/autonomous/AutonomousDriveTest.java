@@ -61,7 +61,7 @@ public class AutonomousDriveTest extends LinearOpMode {
         if (opModeIsActive()) {
 
             wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
-
+            shootPowerShot();
         }
     }
 
@@ -75,27 +75,27 @@ public class AutonomousDriveTest extends LinearOpMode {
         driveToAdvanced(24,60);
 
         // shoot center powershot
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             ringFeederServo.setPosition(1.0);
             sleep(300);
             ringFeederServo.setPosition(0.6);
             sleep(300);
         }
-        turnLeft(29);
+        turnLeft(15);
 
         // shoot left powershot
         turnLeft(30);
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             ringFeederServo.setPosition(1.0);
             sleep(300);
             ringFeederServo.setPosition(0.6);
             sleep(300);
         }
-        turnRight(59);
+        turnRight(30);
 
         // shoot right powershot
         turnRight(60);
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < 1; i++) {
             ringFeederServo.setPosition(1.0);
             sleep(300);
             ringFeederServo.setPosition(0.6);
