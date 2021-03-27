@@ -1,9 +1,10 @@
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.tests;
 
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -25,10 +26,11 @@ import org.openftc.easyopencv.OpenCvWebcam;
 
 @Autonomous
 
-public class AutonomousOpmode extends LinearOpMode {
+public class AutonomousCoachMark extends LinearOpMode {
 
     //  sets variables for drive motors, IMU, etc.
-    DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
+    DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor;
+    DcMotorEx ringShooterMotor1, ringShooterMotor2;
     Servo ringFeederServo, wobbleGoalServo, wobbleGoalReleaseServo;
     BNO055IMU imu;
     OpenCvWebcam webcam;
@@ -36,14 +38,15 @@ public class AutonomousOpmode extends LinearOpMode {
     RingDeterminationPipeline pipeline;
     double drivePower = 1, turnPower = 1;
     double wheelDiameter = 3.77953;
-    double encoderTicksPerRotation = 537.6;
+    double encoderTicksPerRotation = 537.7;
     double gearRatio = 2.0;
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double robotHeading = 0;
-    int xPos = 34, yPos = 0;
+    int xPos = 32, yPos = 0;
     int ringNumber;
-    double towerGoalMotorSpeed = -0.79, powerShotMotorSpeed = -0.65;
+    double towerGoalMotorVelocity = 2236.832, powerShotMotorVelocity = 1817.426; // encoder ticks per second
+    double towerGoalMotorPower = -0.79, powerShotMotorPower = -0.65;
     double wobbleGoalLockOpen = -0.1, wobbleGoalLockClosed = 0.3;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
@@ -61,57 +64,60 @@ public class AutonomousOpmode extends LinearOpMode {
         if (opModeIsActive()) {
 
             wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
-            sleep(200);
-            ringNumber = pipeline.ringNumber;
-
-            shootPowerShots();
-            shootRings();
-            dropOffFirstWobbleGoal();
-
-            if (ringNumber == 0) {
-                getSecondWobbleGoal();
-            }
-
-            // only tries to pick up ring stack if there are rings there
-            if (ringNumber == 1 || ringNumber == 4) {
-                pickupRingStack();
-                shootRingStack();
-            }
-
-            parkOverLaunchLine();
+            shootPowerShot();
 
         }
     }
 
-    private void shootPowerShots() {
-        ringShooterMotor1.setPower(powerShotMotorSpeed);
-        ringShooterMotor2.setPower(powerShotMotorSpeed);
-        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+    private void shootPowerShot() {
 
-        //move
-        driveToAdvanced(2,63);
-        //shoot first powershot
-        ringFeederServo.setPosition(1);
-        sleep(500);
-        ringFeederServo.setPosition(0.6);
+        // start ring shooter
+        ringShooterMotor1.setPower(powerShotMotorPower);
+        ringShooterMotor2.setPower(powerShotMotorPower);
+//        ringShooterMotor1.setVelocity(powerShotMotorVelocity);
+//        ringShooterMotor2.setVelocity(powerShotMotorVelocity);
 
-        //move
-        driveToBasic(11,63);
-        //shoot second powershot
-        ringFeederServo.setPosition(1);
-        sleep(500);
-        ringFeederServo.setPosition(0.6);
+        // drive to shooting spot
+        driveToAdvanced(12,60);
 
-        //move
-        driveToBasic(18,63);
-        //shoot third powershot
-        ringFeederServo.setPosition(1);
-        sleep(500);
-        ringFeederServo.setPosition(0.6);
+        // shoot center powershot
+        for (int i = 0; i < 1; i++) {
+            ringFeederServo.setPosition(1.0);
+            sleep(300);
+            ringFeederServo.setPosition(0.6);
+            sleep(300);
+        }
 
+        driveToBasic(18,60);
+
+        // shoot left powershot
+        turnLeft(30);
+        for (int i = 0; i < 1; i++) {
+            ringFeederServo.setPosition(1.0);
+            sleep(300);
+            ringFeederServo.setPosition(0.6);
+            sleep(300);
+        }
+
+        driveToBasic(24,60);
+
+        // shoot right powershot
+        turnRight(60);
+        for (int i = 0; i < 1; i++) {
+            ringFeederServo.setPosition(1.0);
+            sleep(300);
+            ringFeederServo.setPosition(0.6);
+            sleep(300);
+        }
     }
 
     private void shootRingStack() {
+        ringShooterMotor1.setPower(towerGoalMotorPower);
+        ringShooterMotor2.setPower(towerGoalMotorPower);
+//        ringShooterMotor1.setVelocity(towerGoalMotorVelocity);
+//        ringShooterMotor2.setVelocity(towerGoalMotorVelocity);
+
+
         driveToBasic(36,64);
         sleep(2500);
         takingInRingsMotor.setPower(0);
@@ -137,53 +143,33 @@ public class AutonomousOpmode extends LinearOpMode {
     }
 
     private void pickupRingStack() {
+
         wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+        driveToAdvanced(51,54);
 
-        if (ringNumber == 1){
-            takingInRingsMotor.setPower(-1.0);
-            driveToBasic(51,54);
-            drivePower=0.5;
-            sleep(1000);
-            driveToBasic(51,45);
-            drivePower=1;
-            sleep(2000);
+        if(ringNumber == 4) {
+            driveToBasic(51,52);
+            driveToBasic(51, 53);
         }
 
-        if (ringNumber == 4) {
-            driveToBasic(52,52);
-            sleep(500);
-            takingInRingsMotor.setPower(-1);
-            driveToBasic(52,46);
-            sleep(500);
-            driveToBasic(52,42);
-            sleep(500);
-            driveToBasic(52,38);
-            sleep(500);
-//            driveToBasic(48,50);
-//            driveToBasic(48,54);
-        }
+        takingInRingsMotor.setPower(-1);
+        drivePower = 0.3;
+        sleep(300);
+        driveToBasic(51,40);
+        drivePower = 1;
     }
 
     private void parkOverLaunchLine() {
-        if (ringNumber == 0) {
-            // drop off wobble goal at target zone A
-            driveToBasic(36,72);
-        }
-        else if (ringNumber == 1) {
-            driveToAdvanced(36, 72);
-        }
-        else {
-            // drop off wobble goal at target zone C
-            driveToAdvanced(36,72);
-        }
-        wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+        driveToAdvanced(36,72);
     }
 
-    private void shootRings() {
+    private void shootTowerGoal() {
 
         // start ring shooter
-        ringShooterMotor1.setPower(towerGoalMotorSpeed);
-        ringShooterMotor2.setPower(towerGoalMotorSpeed);
+        ringShooterMotor1.setPower(towerGoalMotorPower);
+        ringShooterMotor2.setPower(towerGoalMotorPower);
+//        ringShooterMotor1.setVelocity(towerGoalMotorVelocity);
+//        ringShooterMotor2.setVelocity(towerGoalMotorVelocity);
 
         // drive to shooting spot
         driveToBasic(32,64);
@@ -348,8 +334,11 @@ public class AutonomousOpmode extends LinearOpMode {
         driveBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         driveBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        ringShooterMotor1 = hardwareMap.get(DcMotor.class, "ringShooterMotor1");
-        ringShooterMotor2 = hardwareMap.get(DcMotor.class, "ringShooterMotor2");
+        ringShooterMotor1 = hardwareMap.get(DcMotorEx.class, "ringShooterMotor1");
+        ringShooterMotor2 = hardwareMap.get(DcMotorEx.class, "ringShooterMotor2");
+//        ringShooterMotor1.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+//        ringShooterMotor2.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
+
         takingInRingsMotor = hardwareMap.get(DcMotor.class, "takingInRingsMotor");
 
         ringFeederServo = hardwareMap.get(Servo.class, "ringFeederServo");
