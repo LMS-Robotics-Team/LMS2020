@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -11,10 +12,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 public class TeleopOneGamepad extends LinearOpMode {
 
     // sets variables for motors and servos
-    private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
+    private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor;
+    private DcMotorEx ringShooterMotor1, ringShooterMotor2;
     Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
     Orientation angles;
-    double towerGoalRingMotorSpeed = -0.79, powerShotRingMotorSpeed = -0.7;
+    double towerGoalRingMotorSpeed = -0.79, powerShotRingMotorSpeed = -0.65;
+    double towerGoalMotorVelocity = -1660, powerShootMotorVelocity = -1350;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
     // creates variables for drive inputs from controllers
@@ -46,24 +49,23 @@ public class TeleopOneGamepad extends LinearOpMode {
             // function to update telemetry
             addTelemetry();
 
-
             // Press right bumper to have ring intake take in rings
-            if (gamepad2.right_bumper) {
+            if (gamepad1.right_bumper) {
                 takingInRingsMotor.setPower(-1);
             }
 
             // Press left bumper to have ring intake run in reverse to spit out rings
-            if (gamepad2.left_bumper) {
+            if (gamepad1.left_bumper) {
                 takingInRingsMotor.setPower(1);
             }
 
             // Press A to shut off ring intake motor
-            if (gamepad2.a) {
+            if (gamepad1.a) {
                 takingInRingsMotor.setPower(0);
             }
 
             // Press B for wobble goal servo horizontal and vertical positions
-            if (gamepad2.b) {
+            if (gamepad1.b) {
                 if (wobbleGoalServo.getPosition() < 0.3) {
                     wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
                     wobbleGoalReleaseServo.setPosition(0);
@@ -75,62 +77,31 @@ public class TeleopOneGamepad extends LinearOpMode {
             }
 
             // Press right trigger for ring feeder servo
-            if (gamepad2.right_trigger == 1) {
-                if (ringShooterMotor1.getPower() < -0.5){
+            if (gamepad1.right_trigger == 1) {
+                if (ringShooterMotor1.getVelocity() <= powerShootMotorVelocity){
                     ringFeederServo.setPosition(1);
                     sleep(300);
                     ringFeederServo.setPosition(0.6);
                 }
             }
 
-            // Press left trigger to unlock and lock wobble goal release servo
-            if (gamepad2.left_trigger == 1) {
-                if (wobbleGoalReleaseServo.getPosition() < 0.3) {
-                    wobbleGoalReleaseServo.setPosition(0.3);
-                }
-                else {
-                    wobbleGoalReleaseServo.setPosition(0);
-                }
-                sleep(1000);
-            }
-
             // press Y for shooter motor for tower goal
-            if (gamepad2.y) {
-                if (ringShooterMotor1.getPower() < powerShotRingMotorSpeed) {
-                    ringShooterMotor1.setPower(0);
-                    ringShooterMotor2.setPower(0);
+            if (gamepad1.y) {
+                if (ringShooterMotor1.getVelocity() < powerShootMotorVelocity) {
+                    ringShooterMotor1.setVelocity(0);
+                    ringShooterMotor2.setVelocity(0);
                 }
                 else {
-                    ringShooterMotor1.setPower(towerGoalRingMotorSpeed);
-                    ringShooterMotor2.setPower(towerGoalRingMotorSpeed);
+                    ringShooterMotor1.setVelocity(towerGoalMotorVelocity);
+                    ringShooterMotor2.setVelocity(towerGoalMotorVelocity);
                 }
                 sleep(1000);
             }
 
             // press X for shooter motor for powershot
-            if (gamepad2.x) {
-                ringShooterMotor1.setPower(powerShotRingMotorSpeed);
-                ringShooterMotor2.setPower(powerShotRingMotorSpeed);
-            }
-
-            if (gamepad2.dpad_up) {
-                ringShooterMotor1.setPower(-0.75);
-                ringShooterMotor2.setPower(-0.75);
-            }
-
-            if (gamepad2.dpad_down) {
-                ringShooterMotor1.setPower(-0.7);
-                ringShooterMotor2.setPower(-0.7);
-            }
-
-            if (gamepad2.dpad_left) {
-                ringShooterMotor1.setPower(-0.6);
-                ringShooterMotor2.setPower(-0.6);
-            }
-
-            if (gamepad2.dpad_right) {
-                ringShooterMotor1.setPower(-0.55);
-                ringShooterMotor2.setPower(-0.55);
+            if (gamepad1.x) {
+                ringShooterMotor1.setVelocity(powerShootMotorVelocity);
+                ringShooterMotor2.setVelocity(powerShootMotorVelocity);
             }
         }
     }
@@ -161,8 +132,8 @@ public class TeleopOneGamepad extends LinearOpMode {
         takingInRingsMotor = hardwareMap.get(DcMotor.class, "takingInRingsMotor");
 
         // maps ring shooter motor variables to hardware configuration names
-        ringShooterMotor1 = hardwareMap.get(DcMotor.class, "ringShooterMotor1");
-        ringShooterMotor2 = hardwareMap.get(DcMotor.class, "ringShooterMotor2");
+        ringShooterMotor1 = hardwareMap.get(DcMotorEx.class, "ringShooterMotor1");
+        ringShooterMotor2 = hardwareMap.get(DcMotorEx.class, "ringShooterMotor2");
 
         // maps ring feeder servo variable to hardware configuration name
         ringFeederServo = hardwareMap.get(Servo.class, "ringFeederServo");
