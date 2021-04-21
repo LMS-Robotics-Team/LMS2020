@@ -4,6 +4,7 @@ import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
@@ -28,7 +29,8 @@ import org.openftc.easyopencv.OpenCvWebcam;
 public class AutonomousOpmode extends LinearOpMode {
 
     //  sets variables for drive motors, IMU, etc.
-    DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor, ringShooterMotor1, ringShooterMotor2;
+    DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor;
+    DcMotorEx ringShooterMotor1, ringShooterMotor2;
     Servo ringFeederServo, wobbleGoalServo, wobbleGoalReleaseServo;
     BNO055IMU imu;
     OpenCvWebcam webcam;
@@ -37,13 +39,14 @@ public class AutonomousOpmode extends LinearOpMode {
     double drivePower = 1, turnPower = 1;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
-    double gearRatio = 2.0;
+    double gearRatio = 1.4189;
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double robotHeading = 0;
     int xPos = 34, yPos = 0;
     int ringNumber;
     double towerGoalMotorPower = -0.79, powerShotMotorPower = -0.65;
+    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1360;
     double wobbleGoalLockOpen = -0.1, wobbleGoalLockClosed = 0.3;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
@@ -348,8 +351,8 @@ public class AutonomousOpmode extends LinearOpMode {
         driveBR.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         driveBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        ringShooterMotor1 = hardwareMap.get(DcMotor.class, "ringShooterMotor1");
-        ringShooterMotor2 = hardwareMap.get(DcMotor.class, "ringShooterMotor2");
+        ringShooterMotor1 = hardwareMap.get(DcMotorEx.class, "ringShooterMotor1");
+        ringShooterMotor2 = hardwareMap.get(DcMotorEx.class, "ringShooterMotor2");
         takingInRingsMotor = hardwareMap.get(DcMotor.class, "takingInRingsMotor");
 
         ringFeederServo = hardwareMap.get(Servo.class, "ringFeederServo");
