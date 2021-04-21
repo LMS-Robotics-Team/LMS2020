@@ -43,7 +43,7 @@ public class AutonomousOpmode extends LinearOpMode {
     double robotHeading = 0;
     int xPos = 34, yPos = 0;
     int ringNumber;
-    double towerGoalMotorSpeed = -0.79, powerShotMotorSpeed = -0.65;
+    double towerGoalMotorPower = -0.79, powerShotMotorPower = -0.65;
     double wobbleGoalLockOpen = -0.1, wobbleGoalLockClosed = 0.3;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
@@ -84,8 +84,8 @@ public class AutonomousOpmode extends LinearOpMode {
     }
 
     private void shootPowerShots() {
-        ringShooterMotor1.setPower(powerShotMotorSpeed);
-        ringShooterMotor2.setPower(powerShotMotorSpeed);
+        ringShooterMotor1.setPower(powerShotMotorPower);
+        ringShooterMotor2.setPower(powerShotMotorPower);
         wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
 
         //move
@@ -182,8 +182,8 @@ public class AutonomousOpmode extends LinearOpMode {
     private void shootRings() {
 
         // start ring shooter
-        ringShooterMotor1.setPower(towerGoalMotorSpeed);
-        ringShooterMotor2.setPower(towerGoalMotorSpeed);
+        ringShooterMotor1.setPower(towerGoalMotorPower);
+        ringShooterMotor2.setPower(towerGoalMotorPower);
 
         // drive to shooting spot
         driveToBasic(32,64);
