@@ -46,7 +46,7 @@ public class AutonomousOpmode extends LinearOpMode {
     int xPos = 34, yPos = 0;
     int ringNumber;
     double towerGoalMotorPower = -0.79, powerShotMotorPower = -0.65;
-    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1360;
+    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1320;
     double wobbleGoalLockOpen = -0.1, wobbleGoalLockClosed = 0.3;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
@@ -63,55 +63,36 @@ public class AutonomousOpmode extends LinearOpMode {
 
         if (opModeIsActive()) {
 
-            wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
-            sleep(200);
-            ringNumber = pipeline.ringNumber;
-
             shootPowerShots();
-            shootRings();
-            dropOffFirstWobbleGoal();
-
-            if (ringNumber == 0) {
-                getSecondWobbleGoal();
-            }
-
-            // only tries to pick up ring stack if there are rings there
-            if (ringNumber == 1 || ringNumber == 4) {
-                pickupRingStack();
-                shootRingStack();
-            }
-
-            parkOverLaunchLine();
 
         }
     }
 
     private void shootPowerShots() {
-        ringShooterMotor1.setPower(powerShotMotorPower);
-        ringShooterMotor2.setPower(powerShotMotorPower);
+        ringShooterMotor1.setVelocity(powerShotMotorVelocity);
+        ringShooterMotor1.setVelocity(powerShotMotorVelocity);
         wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
 
         //move
-        driveToAdvanced(2,63);
+        driveToAdvanced(4,62);
         //shoot first powershot
         ringFeederServo.setPosition(1);
         sleep(500);
         ringFeederServo.setPosition(0.6);
 
         //move
-        driveToBasic(11,63);
+        driveToBasic(11,62);
         //shoot second powershot
         ringFeederServo.setPosition(1);
         sleep(500);
         ringFeederServo.setPosition(0.6);
 
         //move
-        driveToBasic(18,63);
+        driveToBasic(18,62);
         //shoot third powershot
         ringFeederServo.setPosition(1);
         sleep(500);
         ringFeederServo.setPosition(0.6);
-
     }
 
     private void shootRingStack() {
