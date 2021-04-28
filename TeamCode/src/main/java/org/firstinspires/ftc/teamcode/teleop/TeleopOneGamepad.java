@@ -6,8 +6,6 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
-
 @TeleOp
 public class TeleopOneGamepad extends LinearOpMode {
 
@@ -15,9 +13,13 @@ public class TeleopOneGamepad extends LinearOpMode {
     private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor;
     private DcMotorEx ringShooterMotor1, ringShooterMotor2;
     Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
-    Orientation angles;
-    double towerGoalRingMotorSpeed = -0.79, powerShotRingMotorSpeed = -0.65;
-    double towerGoalMotorVelocity = -1660, powerShootMotorVelocity = -1350;
+    double drivePower = 1;
+    double gearRatio = 1.4189;
+    double wheelDiameter = 3.77953;
+    double encoderTicksPerRotation = 537.6;
+    double wheelCircumference = wheelDiameter * Math.PI;
+    double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
+    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1340;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
     // creates variables for drive inputs from controllers
@@ -59,9 +61,37 @@ public class TeleopOneGamepad extends LinearOpMode {
                 takingInRingsMotor.setPower(1);
             }
 
-            // Press A to shut off ring intake motor
-            if (gamepad1.a) {
+            if (gamepad1.left_trigger == 1){
                 takingInRingsMotor.setPower(0);
+            }
+
+            // Press A to automatically shoot powershot in endgame
+            if (gamepad1.a) {
+                ringShooterMotor1.setVelocity(powerShotMotorVelocity);
+                ringShooterMotor1.setVelocity(powerShotMotorVelocity);
+                wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+                sleep(2000);
+
+                //move
+                strafeRight(4);
+                //shoot first powershot
+                ringFeederServo.setPosition(1);
+                sleep(500);
+                ringFeederServo.setPosition(0.6);
+
+                //move
+                strafeRight(7);
+                //shoot second powershot
+                ringFeederServo.setPosition(1);
+                sleep(500);
+                ringFeederServo.setPosition(0.6);
+
+                //move
+                strafeRight(7);
+                //shoot third powershot
+                ringFeederServo.setPosition(1);
+                sleep(500);
+                ringFeederServo.setPosition(0.6);
             }
 
             // Press B for wobble goal servo horizontal and vertical positions
@@ -78,7 +108,7 @@ public class TeleopOneGamepad extends LinearOpMode {
 
             // Press right trigger for ring feeder servo
             if (gamepad1.right_trigger == 1) {
-                if (ringShooterMotor1.getVelocity() <= powerShootMotorVelocity){
+                if (ringShooterMotor1.getVelocity() <= powerShotMotorVelocity){
                     ringFeederServo.setPosition(1);
                     sleep(300);
                     ringFeederServo.setPosition(0.6);
@@ -87,7 +117,7 @@ public class TeleopOneGamepad extends LinearOpMode {
 
             // press Y for shooter motor for tower goal
             if (gamepad1.y) {
-                if (ringShooterMotor1.getVelocity() < powerShootMotorVelocity) {
+                if (ringShooterMotor1.getVelocity() < powerShotMotorVelocity) {
                     ringShooterMotor1.setVelocity(0);
                     ringShooterMotor2.setVelocity(0);
                 }
@@ -100,8 +130,8 @@ public class TeleopOneGamepad extends LinearOpMode {
 
             // press X for shooter motor for powershot
             if (gamepad1.x) {
-                ringShooterMotor1.setVelocity(powerShootMotorVelocity);
-                ringShooterMotor2.setVelocity(powerShootMotorVelocity);
+                ringShooterMotor1.setVelocity(powerShotMotorVelocity);
+                ringShooterMotor2.setVelocity(powerShotMotorVelocity);
             }
         }
     }
@@ -148,6 +178,47 @@ public class TeleopOneGamepad extends LinearOpMode {
 
         telemetry.addData("Status", "Initialization Complete");
         telemetry.update();
+    }
+
+    private void strafeRight(int inches) {
+        driveFL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveFR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveBL.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        driveBR.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        driveFL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveFR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveBL.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        driveBR.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        driveFL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        driveFR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        driveBL.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        driveBR.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        driveFL.setTargetPosition((int)(inches * encoderTicksPerInch));
+        driveFR.setTargetPosition(-(int)(inches * encoderTicksPerInch));
+        driveBL.setTargetPosition(-(int)(inches * encoderTicksPerInch));
+        driveBR.setTargetPosition((int)(inches * encoderTicksPerInch));
+
+        driveFL.setPower(drivePower);
+        driveFR.setPower(-drivePower);
+        driveBL.setPower(-drivePower);
+        driveBR.setPower(drivePower);
+
+        while (driveFL.isBusy()) {
+            idle();
+        }
+
+        driveFL.setPower(0);
+        driveFR.setPower(0);
+        driveBL.setPower(0);
+        driveBR.setPower(0);
+
+        driveFL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveFR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveBL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        driveBR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
     }
 
     // class to add and update telemetry

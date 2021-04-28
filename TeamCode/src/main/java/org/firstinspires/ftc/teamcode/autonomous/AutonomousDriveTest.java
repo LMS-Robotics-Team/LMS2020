@@ -37,7 +37,7 @@ public class AutonomousDriveTest extends LinearOpMode {
     double drivePower = 1, turnPower = 1;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
-    double gearRatio = 2.0;
+    double gearRatio = 1.416666666666666666;
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double robotHeading = 0;
@@ -61,6 +61,7 @@ public class AutonomousDriveTest extends LinearOpMode {
         if (opModeIsActive()) {
 
             //enter autonomous code here
+            driveForward(30);
 
         }
     }
