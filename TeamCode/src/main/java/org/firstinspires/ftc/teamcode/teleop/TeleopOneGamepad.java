@@ -13,13 +13,13 @@ public class TeleopOneGamepad extends LinearOpMode {
     private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor;
     private DcMotorEx ringShooterMotor1, ringShooterMotor2;
     Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
-    double drivePower = 1;
-    double gearRatio = 1.4189;
+    double drivePower = 0.8;
+    double gearRatio = (17.0 / 12.0); // 1.4189;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
-    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1340;
+    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1280;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
 
     // creates variables for drive inputs from controllers
@@ -70,27 +70,39 @@ public class TeleopOneGamepad extends LinearOpMode {
                 ringShooterMotor1.setVelocity(powerShotMotorVelocity);
                 ringShooterMotor1.setVelocity(powerShotMotorVelocity);
                 wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
-                sleep(2000);
 
                 //move
-                strafeRight(4);
+                strafeRight(17);
+
+
+                while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)) {
+                    // do nothing
+                }
                 //shoot first powershot
                 ringFeederServo.setPosition(1);
-                sleep(500);
+                sleep(2000);
                 ringFeederServo.setPosition(0.6);
 
                 //move
                 strafeRight(7);
+
+                while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)) {
+                    // do nothing
+                }
                 //shoot second powershot
                 ringFeederServo.setPosition(1);
-                sleep(500);
+                sleep(2000);
                 ringFeederServo.setPosition(0.6);
 
                 //move
                 strafeRight(7);
+
+                while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)) {
+                    // do nothing
+                }
                 //shoot third powershot
                 ringFeederServo.setPosition(1);
-                sleep(500);
+                sleep(2000);
                 ringFeederServo.setPosition(0.6);
             }
 
@@ -223,8 +235,7 @@ public class TeleopOneGamepad extends LinearOpMode {
 
     // class to add and update telemetry
     private void addTelemetry() {
-        telemetry.addData("Ring shooter motor speed", ringShooterMotor1.getPower());
-        telemetry.addData("Ring intake motor speed", takingInRingsMotor.getPower());
+        telemetry.addData("Ring shooter motor velocity", ringShooterMotor1.getVelocity());
 
         telemetry.update();
     }
