@@ -20,7 +20,7 @@ public class Teleop2 extends LinearOpMode {
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1280;
-    double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
+    double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.50;
     double wobbleGoalLockClosed = 0, wobbleGoalLockOpen = 0.3;
 
     // creates variables for drive inputs from controllers
@@ -45,9 +45,9 @@ public class Teleop2 extends LinearOpMode {
 
             // driving in all directions and rotating
             driveFL.setPower(drivePower * (forwardBackward + leftRight + rotate));
-            driveFR.setPower(drivePower * forwardBackward - leftRight - rotate);
-            driveBL.setPower(drivePower * forwardBackward - leftRight + rotate);
-            driveBR.setPower(drivePower * forwardBackward + leftRight - rotate);
+            driveFR.setPower(drivePower * (forwardBackward - leftRight - rotate));
+            driveBL.setPower(drivePower * (forwardBackward - leftRight + rotate));
+            driveBR.setPower(drivePower * (forwardBackward + leftRight - rotate));
 
             // function to update telemetry
             addTelemetry();
@@ -69,12 +69,29 @@ public class Teleop2 extends LinearOpMode {
 
             // Press B for wobble goal servo horizontal and vertical positions
             if (gamepad2.b) {
-                if (wobbleGoalServo.getPosition() < 0.3) {
+                if (wobbleGoalServo.getPosition() < wobbleGoalReleasePosition) {
                     wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
-                    wobbleGoalReleaseServo.setPosition(0);
+                    sleep(2000);
+                    wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
                 }
                 else {
                     wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+                    sleep(1000);
+                }
+            }
+
+            // Press dpad down for wobble goal attachment to lower, release wobble goal and rise back up
+            if (gamepad2.dpad_down) {
+                if (wobbleGoalServo.getPosition() < wobbleGoalReleasePosition) {
+                    wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
+                    sleep(2000);
+                    wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+                    sleep(500);
+                    wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+                }
+                else {
+                    wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+                    sleep(1000);
                 }
             }
 
@@ -95,6 +112,7 @@ public class Teleop2 extends LinearOpMode {
                 else {
                     wobbleGoalReleaseServo.setPosition(wobbleGoalLockClosed);
                 }
+                sleep(500);
             }
 
             // press Y for shooter motor for tower goal

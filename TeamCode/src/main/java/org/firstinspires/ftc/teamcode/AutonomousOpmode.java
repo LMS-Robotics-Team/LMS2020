@@ -63,18 +63,17 @@ public class AutonomousOpmode extends LinearOpMode {
         if (opModeIsActive()) {
 
             ringNumber = pipeline.ringNumber;
-            ringNumber = 4;
 
             shootPowerShots();
-            dropOffFirstWobbleGoal();
+//            dropOffFirstWobbleGoal();
 
-            if (ringNumber == 1 || ringNumber == 4) {
-                pickupRingStack();
-                shootRingStack();
-            }
+//            if (ringNumber == 1 || ringNumber == 4) {
+//                pickupRingStack();
+//                shootRingStack();
+//            }
 
-            getSecondWobbleGoal();
-            parkOverLaunchLine();
+//            getSecondWobbleGoal();
+//            parkOverLaunchLine();
 
         }
     }

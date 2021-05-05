@@ -20,7 +20,8 @@ public class TeleopOneGamepad extends LinearOpMode {
     double wheelCircumference = wheelDiameter * Math.PI;
     double encoderTicksPerInch = ((encoderTicksPerRotation / wheelCircumference) * gearRatio);
     double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1280;
-    double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.48;
+    double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.50;
+    double wobbleGoalLockClosed = 0, wobbleGoalLockOpen = 0.3;
 
     // creates variables for drive inputs from controllers
     private double forwardBackward, leftRight, rotate;
@@ -61,8 +62,19 @@ public class TeleopOneGamepad extends LinearOpMode {
                 takingInRingsMotor.setPower(1);
             }
 
-            if (gamepad1.left_trigger == 1){
+            if (gamepad1.dpad_up){
                 takingInRingsMotor.setPower(0);
+            }
+
+            // Press left trigger to unlock and lock wobble goal release servo
+            if (gamepad1.left_trigger == 1) {
+                if (wobbleGoalReleaseServo.getPosition() < wobbleGoalLockOpen) {
+                    wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+                }
+                else {
+                    wobbleGoalReleaseServo.setPosition(wobbleGoalLockClosed);
+                }
+                sleep(500);
             }
 
             // Press A to automatically shoot powershot in endgame
@@ -108,14 +120,30 @@ public class TeleopOneGamepad extends LinearOpMode {
 
             // Press B for wobble goal servo horizontal and vertical positions
             if (gamepad1.b) {
-                if (wobbleGoalServo.getPosition() < 0.3) {
+                if (wobbleGoalServo.getPosition() < wobbleGoalReleasePosition) {
                     wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
-                    wobbleGoalReleaseServo.setPosition(0);
+                    sleep(2000);
+                    wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
                 }
                 else {
                     wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+                    sleep(1000);
                 }
-                sleep(500);
+            }
+
+            // Press dpad down for wobble goal attachment to lower, release wobble goal and rise back up
+            if (gamepad1.dpad_down) {
+                if (wobbleGoalServo.getPosition() < wobbleGoalReleasePosition) {
+                    wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
+                    sleep(2000);
+                    wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
+                    sleep(500);
+                    wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+                }
+                else {
+                    wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
+                    sleep(1000);
+                }
             }
 
             // Press right trigger for ring feeder servo
