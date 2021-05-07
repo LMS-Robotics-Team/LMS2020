@@ -36,7 +36,7 @@ public class AutonomousOpmode extends LinearOpMode {
     OpenCvWebcam webcam;
     WebcamName webcamName;
     RingDeterminationPipeline pipeline;
-    double drivePower = 0.8, turnPower = 0.8;
+    double drivePower = 0.8, turnPower = 0.8, turnToZeroPower = 0.1, strafePower = 0.6;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
     double gearRatio = (17.0 / 12.0); // 1.4189;
@@ -45,7 +45,7 @@ public class AutonomousOpmode extends LinearOpMode {
     double robotHeading = 0;
     int xPos = 34, yPos = 0;
     int ringNumber;
-    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1280;
+    double towerGoalMotorVelocity = -1640, powerShotMotorVelocity = -1300;
     double wobbleGoalLockClosed = 0, wobbleGoalLockOpen = 0.3;
     double wobbleGoalVerticalPosition = 0.22, wobbleGoalReleasePosition = 0.5;
 
@@ -65,7 +65,10 @@ public class AutonomousOpmode extends LinearOpMode {
             ringNumber = pipeline.ringNumber;
 
             shootPowerShots();
-//            dropOffFirstWobbleGoal();
+            dropOffFirstWobbleGoal();
+//            pickupRingStack();
+//            shootRingStack();
+            getSecondWobbleGoal();
 
 //            if (ringNumber == 1 || ringNumber == 4) {
 //                pickupRingStack();
@@ -85,9 +88,10 @@ public class AutonomousOpmode extends LinearOpMode {
 
         //move
         driveToBasic(34,62);
-        driveToBasic(31, 62);
+        driveToBasic(18, 62);
+        turnToZero();
 
-        while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)){
+        while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity)){
             // do nothing
         }
 
@@ -96,10 +100,14 @@ public class AutonomousOpmode extends LinearOpMode {
         sleep(1000);
         ringFeederServo.setPosition(0.6);
 
-        //move
-        driveToBasic(24,62);
+        ringShooterMotor1.setVelocity(powerShotMotorVelocity+40);
+        ringShooterMotor1.setVelocity(powerShotMotorVelocity+40);
 
-        while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)){
+        //move
+        driveToBasic(11,62);
+        turnToZero();
+
+        while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity+40)){
             // do nothing
         }
 
@@ -108,10 +116,14 @@ public class AutonomousOpmode extends LinearOpMode {
         sleep(1000);
         ringFeederServo.setPosition(0.6);
 
-        //move
-        driveToBasic(17,62);
+        ringShooterMotor1.setVelocity(powerShotMotorVelocity+20);
+        ringShooterMotor1.setVelocity(powerShotMotorVelocity+20);
 
-        while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)){
+        //move
+        driveToBasic(4,62);
+        turnToZero();
+
+        while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity+20)){
             // do nothing
         }
 
@@ -119,6 +131,29 @@ public class AutonomousOpmode extends LinearOpMode {
         ringFeederServo.setPosition(1);
         sleep(1000);
         ringFeederServo.setPosition(0.6);
+    }
+
+    private void turnToZero() {
+        if (Angle() != 0) {
+            while (Angle() > 1) {
+                driveFL.setPower(turnToZeroPower);
+                driveFR.setPower(-turnToZeroPower);
+                driveBL.setPower(turnToZeroPower);
+                driveBR.setPower(-turnToZeroPower);
+                telemetry.addData("Angle",Angle());
+                telemetry.update();
+            }
+        }
+        else {
+            while (Angle() < -1) {
+                driveFL.setPower(-turnToZeroPower);
+                driveFR.setPower(turnToZeroPower);
+                driveBL.setPower(-turnToZeroPower);
+                driveBR.setPower(turnToZeroPower);
+                telemetry.addData("Angle",Angle());
+                telemetry.update();
+            }
+        }
     }
 
     private void shootRingStack() {
@@ -244,31 +279,33 @@ public class AutonomousOpmode extends LinearOpMode {
 
     private void getSecondWobbleGoal() {
 
-        driveToBasic(64,36); // drive close to second wobble goal
+        driveToBasic(70,36); // drive close to second wobble goal
         drivePower = 0.2; // change drive power so it will go slower toward second wobble goal
         turnAround(); // turn around to face second wobble goal
-        driveToBasic(64,45); // move closer to wobble goal to get into attachment
+        driveToBasic(70,42); // move closer to wobble goal to get into attachment
         sleep(1000);
         wobbleGoalReleaseServo.setPosition(wobbleGoalLockClosed);
         sleep(1000);
         wobbleGoalServo.setPosition(0.4); // raise wobble goal off ground
         drivePower = 1;
-        driveToBasic(64,36); // go back to original position before turning around
+        driveToBasic(70,36); // go back to original position before turning around
         turnAround(); // turn around
 
 
         if (ringNumber == 0) {
             // drop off wobble goal at target zone A
-            driveToBasic(74, 58);
+            driveToBasic(74, 57);
             wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
+            sleep(500);
             wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
-            driveToBasic(74,48);
+            driveToBasic(74,47);
 
         }
         else if (ringNumber == 1) {
             // drop off wobble goal at target zone B
             driveToBasic(48, 78);
             wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
+            sleep(500);
             wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
             driveToBasic(48,68);
 
@@ -277,6 +314,7 @@ public class AutonomousOpmode extends LinearOpMode {
             // drop off wobble goal at target zone C
             driveToBasic(72, 100);
             wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
+            sleep(500);
             wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
             driveToBasic(72,90);
         }
@@ -286,20 +324,21 @@ public class AutonomousOpmode extends LinearOpMode {
 
         // horizontal and ready to drop
         wobbleGoalServo.setPosition(wobbleGoalReleasePosition);
+        wobbleGoalReleaseServo.setPosition(wobbleGoalLockClosed);
 
         if (ringNumber == 0) {
             // drop off wobble goal at target zone A
-            driveToBasic(70,70);
+            driveToBasic(70,64);
             wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
             sleep(500);
             driveToBasic(70,60);
         }
         else if (ringNumber == 1) {
             // drop off wobble goal at target zone B
-            driveToBasic(52,90);
+            driveToBasic(52,84);
             wobbleGoalReleaseServo.setPosition(wobbleGoalLockOpen);
             sleep(500);
-            driveToBasic(52, 80);
+            driveToBasic(52, 74);
         }
         else {
             // drop off wobble goal at target zone C
@@ -337,7 +376,7 @@ public class AutonomousOpmode extends LinearOpMode {
         ringFeederServo.setPosition(0.6);
 
         wobbleGoalServo = hardwareMap.get(Servo.class, "wobbleGoalServo");
-        wobbleGoalServo.setPosition(0);
+        wobbleGoalServo.setPosition(0.1);
 
         wobbleGoalReleaseServo = hardwareMap.get(Servo.class, "wobbleGoalReleaseServo");
         wobbleGoalReleaseServo.setPosition(wobbleGoalLockClosed);
@@ -451,19 +490,27 @@ public class AutonomousOpmode extends LinearOpMode {
         driveBL.setTargetPosition(-(int)(inches * encoderTicksPerInch));
         driveBR.setTargetPosition((int)(inches * encoderTicksPerInch));
 
-        driveFL.setPower(drivePower);
-        driveFR.setPower(-drivePower);
-        driveBL.setPower(-drivePower);
-        driveBR.setPower(drivePower);
+        driveFR.setPower(-strafePower);
+        driveBL.setPower(-strafePower);
+        driveBR.setPower(strafePower);
+        if (inches < 0){
+            sleep(75);
+        }
+        driveFL.setPower(strafePower);
+
 
         while (driveFL.isBusy()) {
             idle();
         }
 
         driveFL.setPower(0);
+        if (inches < 0){
+            sleep(75);
+        }
         driveFR.setPower(0);
         driveBL.setPower(0);
         driveBR.setPower(0);
+
 
         driveFL.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         driveFR.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -766,12 +813,12 @@ public class AutonomousOpmode extends LinearOpMode {
         static final Scalar BLUE = new Scalar(0, 0, 255);
 
         // Values that define the region we want to capture and analyze
-        static final Point TOP_LEFT_ANCHOR_POINT = new Point(193,180);
+        static final Point TOP_LEFT_ANCHOR_POINT = new Point(220,180);
 
         static final int REGION_WIDTH = 50;
         static final int REGION_HEIGHT = 35;
 
-        final int FOUR_RING_THRESHOLD = 150;
+        final int FOUR_RING_THRESHOLD = 155;
         final int ONE_RING_THRESHOLD = 135;
 
         Point region1_pointA = new Point(

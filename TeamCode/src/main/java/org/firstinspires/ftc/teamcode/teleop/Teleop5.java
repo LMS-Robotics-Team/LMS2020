@@ -10,10 +10,10 @@ import com.qualcomm.robotcore.hardware.Servo;
 public class Teleop5 extends LinearOpMode {
 
     // sets variables for motors and servos
-    private DcMotor driveFL, driveFR, driveBL, driveBR, takingInRingsMotor;
+    private DcMotorEx driveFL, driveFR, driveBL, driveBR, takingInRingsMotor;
     private DcMotorEx ringShooterMotor1, ringShooterMotor2;
     Servo wobbleGoalServo, ringFeederServo, wobbleGoalReleaseServo;
-    double drivePower = 0.8;
+    double drivePower = 0.8, FLDrivePower = 0.963768116;
     double gearRatio = (17.0 / 12.0); // 1.4189;
     double wheelDiameter = 3.77953;
     double encoderTicksPerRotation = 537.6;
@@ -44,10 +44,10 @@ public class Teleop5 extends LinearOpMode {
             rotate = gamepad1.right_stick_x;
 
             // driving in all directions and rotating
-            driveFL.setPower(drivePower * (forwardBackward + leftRight + rotate));
-            driveFR.setPower(drivePower * (forwardBackward - leftRight - rotate));
-            driveBL.setPower(drivePower * (forwardBackward - leftRight + rotate));
-            driveBR.setPower(drivePower * (forwardBackward + leftRight - rotate));
+            driveFL.setVelocity((2640*(forwardBackward + leftRight + rotate)));
+            driveFR.setVelocity((2640*(forwardBackward - leftRight - rotate)));
+            driveBL.setVelocity((2640*(forwardBackward - leftRight + rotate)));
+            driveBR.setVelocity((2640*(forwardBackward + leftRight - rotate)));
 
             // function to update telemetry
             addTelemetry();
@@ -185,10 +185,10 @@ public class Teleop5 extends LinearOpMode {
         telemetry.update();
 
         // maps drive motor variables to hardware configuration names
-        driveFL = hardwareMap.get(DcMotor.class, "motorTestFL");
-        driveFR = hardwareMap.get(DcMotor.class, "motorTestFR");
-        driveBL = hardwareMap.get(DcMotor.class, "motorTestBL");
-        driveBR = hardwareMap.get(DcMotor.class, "motorTestBR");
+        driveFL = hardwareMap.get(DcMotorEx.class, "motorTestFL");
+        driveFR = hardwareMap.get(DcMotorEx.class, "motorTestFR");
+        driveBL = hardwareMap.get(DcMotorEx.class, "motorTestBL");
+        driveBR = hardwareMap.get(DcMotorEx.class, "motorTestBR");
 
         // sets left motors to reverse direction so they're going the right way
         driveFL.setDirection(DcMotor.Direction.REVERSE);
@@ -201,7 +201,7 @@ public class Teleop5 extends LinearOpMode {
         driveBL.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // maps ring intake motor variable to hardware configuration name
-        takingInRingsMotor = hardwareMap.get(DcMotor.class, "takingInRingsMotor");
+        takingInRingsMotor = hardwareMap.get(DcMotorEx.class, "takingInRingsMotor");
 
         // maps ring shooter motor variables to hardware configuration names
         ringShooterMotor1 = hardwareMap.get(DcMotorEx.class, "ringShooterMotor1");
@@ -225,6 +225,10 @@ public class Teleop5 extends LinearOpMode {
     // class to add and update telemetry
     private void addTelemetry() {
         telemetry.addData("Ring shooter motor speed", ringShooterMotor1.getVelocity());
+        telemetry.addData("Front left motor velocity",driveFL.getVelocity());
+        telemetry.addData("Front right motor velocity",driveFR.getVelocity());
+        telemetry.addData("Back left motor velocity",driveBL.getVelocity());
+        telemetry.addData("Back right motor velocity",driveBR.getVelocity());
         telemetry.update();
     }
 

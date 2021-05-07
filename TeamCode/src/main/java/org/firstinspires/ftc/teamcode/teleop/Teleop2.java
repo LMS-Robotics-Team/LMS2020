@@ -54,7 +54,7 @@ public class Teleop2 extends LinearOpMode {
 
             // Press right bumper to have ring intake take in rings
             if (gamepad2.right_bumper) {
-                takingInRingsMotor.setPower(-1);
+                takingInRingsMotor.setPower(-0.8);
             }
 
             // Press left bumper to have ring intake run in reverse to spit out rings
@@ -142,7 +142,7 @@ public class Teleop2 extends LinearOpMode {
                 wobbleGoalServo.setPosition(wobbleGoalVerticalPosition);
 
                 //move
-                strafeRight(17);
+                strafeRight(10);
 
                 while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)) {
                     // do nothing
@@ -151,9 +151,9 @@ public class Teleop2 extends LinearOpMode {
                 ringFeederServo.setPosition(1);
                 sleep(2000);
                 ringFeederServo.setPosition(0.6);
-
+                //COmpup u 1`
                 //move
-                strafeRight(7);
+                strafeRight(8);
 
                 while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)) {
                     // do nothing
@@ -164,7 +164,7 @@ public class Teleop2 extends LinearOpMode {
                 ringFeederServo.setPosition(0.6);
 
                 //move
-                strafeRight(7);
+                strafeRight(9);
 
                 while (ringShooterMotor1.getVelocity() > (powerShotMotorVelocity + 20)) {
                     // do nothing
